@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <meta charset="UTF-8">
+    <title>PDSim</title>
+</head>
+<body>
+    <nav>
+        <div class="nav-wrapper">
+            <a class="brand-logo center">PDSim</a>
+        </div>
+    </nav>
+    
+    {% if  data %}
+
+    {% else %}
+    <div>
+        <h3 class="center-align">PDDL problem not initialized in Unity</h5>
+    </div>
+
+    {% endif %}
+</body>
+</html>
