@@ -1,0 +1,27 @@
+<form style="height: max-content">
+
+    <div class="row">
+        {# Domain #}
+        <div class="col s54">
+            <label for="domain-area">Domain</label>
+            <textarea name="domain" id="domain-area" rows="100">{{ data["domain"] }}</textarea>
+        </div>
+        {# Problem #}
+        <div class="col s5">
+            <label for="problem-area">Problem</label>
+            <textarea name="problem" id="problem-area" rows="100">{{ data["problem"] }}</textarea>
+        </div>
+
+        {# Parsed #}
+        <div class="col s2">
+            <p>Parsed shit</p>
+        </div>
+    </div>
+
+
+</form>
+
+<script>
+    const domainEditor = CodeMirror.fromTextArea(document.getElementById("domain-area"), {lineNumbers: true});
+    const problemEditor = CodeMirror.fromTextArea(document.getElementById("problem-area"), {lineNumbers: true});
+</script>

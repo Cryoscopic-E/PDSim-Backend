@@ -1,0 +1,365 @@
+{
+  "instance_name": "logistics-4-0",
+  "objects": [
+    {
+      "name": "apn1",
+      "type": "airplane"
+    },
+    {
+      "name": "apt1",
+      "type": "airport"
+    },
+    {
+      "name": "apt2",
+      "type": "airport"
+    },
+    {
+      "name": "pos2",
+      "type": "location"
+    },
+    {
+      "name": "pos1",
+      "type": "location"
+    },
+    {
+      "name": "cit2",
+      "type": "city"
+    },
+    {
+      "name": "cit1",
+      "type": "city"
+    },
+    {
+      "name": "tru2",
+      "type": "truck"
+    },
+    {
+      "name": "tru1",
+      "type": "truck"
+    },
+    {
+      "name": "obj23",
+      "type": "package"
+    },
+    {
+      "name": "obj22",
+      "type": "package"
+    },
+    {
+      "name": "obj21",
+      "type": "package"
+    },
+    {
+      "name": "obj13",
+      "type": "package"
+    },
+    {
+      "name": "obj12",
+      "type": "package"
+    },
+    {
+      "name": "obj11",
+      "type": "package"
+    }
+  ],
+  "predicates": [
+    {
+      "name": "in-city",
+      "attributes": [
+        "place",
+        "city"
+      ]
+    },
+    {
+      "name": "at",
+      "attributes": [
+        "physobj",
+        "place"
+      ]
+    },
+    {
+      "name": "in",
+      "attributes": [
+        "package",
+        "vehicle"
+      ]
+    }
+  ],
+  "types": {
+    "object": [
+      "physobj",
+      "place",
+      "city"
+    ],
+    "city": [],
+    "place": [
+      "airport",
+      "location"
+    ],
+    "physobj": [
+      "vehicle",
+      "package"
+    ],
+    "airport": [],
+    "location": [],
+    "package": [],
+    "vehicle": [
+      "airplane",
+      "truck"
+    ],
+    "truck": [],
+    "airplane": []
+  },
+  "init": [
+    {
+      "predicate": "at",
+      "attributes": [
+        "tru2",
+        "pos2"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "obj21",
+        "pos2"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "obj22",
+        "pos2"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "obj13",
+        "pos1"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "obj11",
+        "pos1"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "obj23",
+        "pos2"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "obj12",
+        "pos1"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "apn1",
+        "apt2"
+      ]
+    },
+    {
+      "predicate": "at",
+      "attributes": [
+        "tru1",
+        "pos1"
+      ]
+    },
+    {
+      "predicate": "in-city",
+      "attributes": [
+        "pos1",
+        "cit1"
+      ]
+    },
+    {
+      "predicate": "in-city",
+      "attributes": [
+        "apt1",
+        "cit1"
+      ]
+    },
+    {
+      "predicate": "in-city",
+      "attributes": [
+        "apt2",
+        "cit2"
+      ]
+    },
+    {
+      "predicate": "in-city",
+      "attributes": [
+        "pos2",
+        "cit2"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "load-truck",
+      "params": [
+        "package",
+        "truck",
+        "place"
+      ],
+      "effect": [
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            2
+          ],
+          "negated": true
+        },
+        {
+          "predicate": "in",
+          "param_indx": [
+            0,
+            1
+          ],
+          "negated": false
+        }
+      ]
+    },
+    {
+      "name": "load-airplane",
+      "params": [
+        "package",
+        "airplane",
+        "place"
+      ],
+      "effect": [
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            2
+          ],
+          "negated": true
+        },
+        {
+          "predicate": "in",
+          "param_indx": [
+            0,
+            1
+          ],
+          "negated": false
+        }
+      ]
+    },
+    {
+      "name": "unload-truck",
+      "params": [
+        "package",
+        "truck",
+        "place"
+      ],
+      "effect": [
+        {
+          "predicate": "in",
+          "param_indx": [
+            0,
+            1
+          ],
+          "negated": true
+        },
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            2
+          ],
+          "negated": false
+        }
+      ]
+    },
+    {
+      "name": "unload-airplane",
+      "params": [
+        "package",
+        "airplane",
+        "place"
+      ],
+      "effect": [
+        {
+          "predicate": "in",
+          "param_indx": [
+            0,
+            1
+          ],
+          "negated": true
+        },
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            2
+          ],
+          "negated": false
+        }
+      ]
+    },
+    {
+      "name": "drive-truck",
+      "params": [
+        "truck",
+        "place",
+        "place",
+        "city"
+      ],
+      "effect": [
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            1
+          ],
+          "negated": true
+        },
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            2
+          ],
+          "negated": false
+        }
+      ]
+    },
+    {
+      "name": "fly-airplane",
+      "params": [
+        "airplane",
+        "airport",
+        "airport"
+      ],
+      "effect": [
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            1
+          ],
+          "negated": true
+        },
+        {
+          "predicate": "at",
+          "param_indx": [
+            0,
+            2
+          ],
+          "negated": false
+        }
+      ]
+    }
+  ]
+}

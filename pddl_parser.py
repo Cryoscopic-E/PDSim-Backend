@@ -15,15 +15,15 @@ class PDDLParser(FstripsReader):
         self.current_domain = domain_text
         self.current_instance = instance_text
 
-    def parse(self, text, rule):
+    def _parse(self, text, rule):
         parse_tree, _ = self.parser.parse_string(text, rule)
         self.parser.visit(parse_tree)
 
-    def parse_pddl_domain(self):
-        self.parse(self.current_domain, "domain")
+    def _parse_pddl_domain(self):
+        self._parse(self.current_domain, "domain")
 
-    def parse_pddl_problem(self):
-        self.parse(self.current_instance, "problem")
+    def _parse_pddl_problem(self):
+        self._parse(self.current_instance, "problem")
         return self.problem
 
     def parse_pddl(self):
@@ -31,8 +31,8 @@ class PDDLParser(FstripsReader):
         output = {}
 
         try:
-            self.parse_pddl_domain()
-            problem = self.parse_pddl_problem()
+            self._parse_pddl_domain()
+            problem = self._parse_pddl_problem()
             lang = problem.language
             parsed_pddl = lang.dump()
 
@@ -83,8 +83,8 @@ class PDDLParser(FstripsReader):
                     indexes = [params.index(ep.symbol) for ep in effect_params]
                     action["effect"].append(
                         {"predicate": effect_predicate.symbol,
-                        "param_indx": indexes,
-                        "negated": isinstance(effect, DelEffect)})
+                         "param_indx": indexes,
+                         "negated": isinstance(effect, DelEffect)})
                 actions.append(action)
 
             output["instance_name"] = problem_name
@@ -101,5 +101,5 @@ class PDDLParser(FstripsReader):
                 output["error"] = "Syntax Error: " + str(error)
             else:
                 output["error"] = "Language error"
-
+        print(output)
         return json.dumps(output).encode("utf-8")
