@@ -1,6 +1,5 @@
 name: pdsim
 channels:
-  - nvidia
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
@@ -43,5 +42,13 @@ dependencies:
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h7b6447c_3
   - pip:
+    - antlr4-python3-runtime==4.7.2
+    - multipledispatch==0.6.0
     - psutil==5.8.0
+    - pyparsing==3.0.7
+    - pyperplan==2.1
+    - tarski==0.7.0
+    - unified-planning==0.0.1.dev69
+    - up-pyperplan==0.0.1
+    - up-tamer==0.0.1
 prefix: /home/emanuele/miniconda3/envs/pdsim
