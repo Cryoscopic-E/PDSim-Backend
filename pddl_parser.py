@@ -39,13 +39,17 @@ class PDDLParser(FstripsReader):
             problem_name = problem.name
 
             # Get Objects
-            objects = []
+            objects = {}
             for o in lang.constants():
-                obj = {}
                 object_name = o.name
-                obj["name"] = object_name
-                obj["type"] = lang.get_constant(object_name).sort.name
-                objects.append(obj)
+                object_type = lang.get_constant(object_name).sort.name
+
+                #obj["name"] = object_name
+                #obj["type"] = lang.get_constant(object_name).sort.name
+
+                if objects.get(object_type) is None:
+                    objects[object_type] = []
+                objects[object_type].append(object_name)
 
             # Get Types
             types = {}
@@ -54,38 +58,56 @@ class PDDLParser(FstripsReader):
                 types[s.name] = [c.name for c in children(s)]
 
             # Get Predicates
-            predicates = []
+            predicates = {}
             for p in parsed_pddl["predicates"]:
                 if isinstance(p["symbol"], str):
-                    predicate = {"name": p["symbol"], "attributes": p["domain"]}
-                    predicates.append(predicate)
+                    # predicate = {"name": p["symbol"],"attributes": p["domain"]}
+                    # predicates.append(predicate)
+                    predicates[p["symbol"]] = p["domain"]
 
             # Get Init
             init_block = []
             for k, ext in problem.init.predicate_extensions.items():
                 pred = lang.get_predicate(k[0])
                 for tup in ext:
-                    fact = {"predicate": pred.symbol, "attributes": [att.name for att in unwrap_tuple(tup)]}
+                    #fact = {"predicate": pred.symbol, "attributes": [att.name for att in unwrap_tuple(tup)]}
+                    fact = {pred.symbol: [
+                        att.name for att in unwrap_tuple(tup)]}
                     init_block.append(fact)
 
             # Get Actions
-            actions = []
+            actions = {}
 
             for a in list(problem.actions):
-                action = {"name": a.lower()}
                 action_class = problem.get_action(a)
-                action["params"] = [p.sort.name for p in action_class.parameters]
-                action["effect"] = []
+                actions[a.lower()] = {}
+                actions[a.lower()]["params"] = [
+                    p.sort.name for p in action_class.parameters]
+                actions[a.lower()]["effects"] = []
                 params = [p.symbol for p in action_class.parameters]
                 for effect in action_class.effects:
                     effect_predicate = effect.atom.predicate
                     effect_params = effect.atom.subterms
                     indexes = [params.index(ep.symbol) for ep in effect_params]
-                    action["effect"].append(
+                    actions[a.lower()]["effects"].append(
                         {"predicate": effect_predicate.symbol,
-                         "param_indx": indexes,
+                         "param_index": indexes,
                          "negated": isinstance(effect, DelEffect)})
-                actions.append(action)
+                #action = {"name": a.lower()}
+                # action_class = problem.get_action(a)
+                # action["params"] = [
+                #     p.sort.name for p in action_class.parameters]
+                # action["effect"] = []
+                # params = [p.symbol for p in action_class.parameters]
+                # for effect in action_class.effects:
+                #     effect_predicate = effect.atom.predicate
+                #     effect_params = effect.atom.subterms
+                #     indexes = [params.index(ep.symbol) for ep in effect_params]
+                #     action["effect"].append(
+                #         {"predicate": effect_predicate.symbol,
+                #          "param_indx": indexes,
+                #          "negated": isinstance(effect, DelEffect)})
+                # actions.append(action)
 
             output["instance_name"] = problem_name
             output["objects"] = objects
