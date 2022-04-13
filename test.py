@@ -1,14 +1,13 @@
 # test parser
-from pddl_parser import PDDLParser
 from unified_planning.shortcuts import *
 from unified_planning.io.pddl_reader import PDDLReader
 
 from unified_planning.model.problem import Problem
-from unified_planning.model.action import Action, InstantaneousAction, DurativeAction
-from unified_planning.model.types import Type
-from unified_planning.model.effect import Effect
+from unified_planning.model.action import InstantaneousAction
 from unified_planning.model.fnode import FNode
 from unified_planning.model.object import Object
+
+from up_tamer.solver import SolverImpl
 
 
 def problem_objects(obj: Object):
@@ -20,21 +19,43 @@ def main():
     pddl_read = PDDLReader()
     problem: Problem = pddl_read.parse_problem('./pddl/domain.pddl', './pddl/instance-1.pddl')
 
-    print(problem.kind().features())
+    solver = SolverImpl()
+    print(solver.solve(problem))
+
+    # print(problem.kind().features())
 
     # ==== PROBLEM NAME ====
     # print(problem.name)
 
-    # ==== OBJECTS ====
-    for obj in problem.all_objects():
-        problem_objects(obj)
-
     # ==== TYPES ====
-    
 
-    # ==== INITIAL FLUENTS ====
-    # print(problem.initial_values())
-    
+    types = dict()
+    # root is object
+    types['object'] = list()
+    for t in problem.user_types():
+
+        # put type in if don't exist
+        if types.get(t.name()) is None:
+            types[t.name()] = list()
+
+        parent_type = t.father()
+        if parent_type is None:
+            types['object'].append(t.name())
+
+        else:
+            if types.get(parent_type.name()) is None:
+                types[parent_type.name()] = list()
+            types[parent_type.name()].append(t.name())
+    # print(types)
+
+    # ==== PREDICATES ====
+
+    # for fluent in problem.fluents():
+    # print(fluent.name())
+    # print(fluent.arity())
+    # for arg_type in fluent.signature():
+    # print(arg_type.name())
+
     # ==== ACTIONS ====
     for action in problem.actions():
         # print(f'Action Name: {action.name}')
@@ -57,6 +78,13 @@ def main():
                 # print(f'Arity:{fluent.arity()}')
                 # print(f'Args:{arguments}')
                 # print('\n')
+
+    # ==== OBJECTS ====
+    for obj in problem.all_objects():
+        problem_objects(obj)
+
+    # ==== INITIAL FLUENTS ====
+    # print(problem.initial_values())
 
 
 if __name__ == '__main__':
