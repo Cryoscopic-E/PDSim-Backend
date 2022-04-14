@@ -1,10 +1,8 @@
 from unified_planning.shortcuts import *
 from unified_planning.io.pddl_reader import PDDLReader
-
 from unified_planning.model.problem import Problem
 from unified_planning.model.action import InstantaneousAction
 from unified_planning.model.fnode import FNode
-from unified_planning.model.object import Object
 
 
 class PDSimReader:
@@ -41,46 +39,60 @@ class PDSimReader:
                 types[parent_type.name()].append(t.name())
 
         # ==== PREDICATES ====
-
+        fluents = {}
+        fluent: Fluent
         for fluent in self.problem.fluents():
-            print(fluent.name())
-            print(fluent.arity())
+            fluent_name: str = fluent.name()
+            fluents[fluent_name] = {}
+            fluents[fluent_name]["arity"] = fluent.arity()
+            fluents[fluent_name]["args"] = []
             for arg_type in fluent.signature():
-                print(arg_type.name())
+                fluents[fluent_name]["args"].append(arg_type.name())
 
             # ==== ACTIONS ====
+        actions = {}
         for action in self.problem.actions():
-            # print(f'Action Name: {action.name}')
-
+            actions[action.name] = {}
+            actions[action.name]["params"] = []
             # Action's parameters  [name-type]
             for action_param in action.parameters():
                 param_name: str = action_param.name()
                 type_name = action_param.type().name()
-                # print('\t',param_name, f'<{type_name}>')
-
-            # Action's effects [negated, name, arity, arguments (maps to parameters)]
+                actions[action.name]["params"].append({param_name: type_name})
+            actions[action.name]["effects"] = []
+            # Action's effects [name, negated, arguments (maps to parameters)]
             if isinstance(action, InstantaneousAction):
                 for effect in action.effects():
                     fluent_node: FNode = effect.fluent()
-                    fluent: Fluent = fluent_node.fluent()
+                    fluent: str = fluent_node.fluent().name()
                     is_negated = not effect.value().is_true()
                     arguments = fluent_node.args()
-                    # print(f'Fluent Name: {fluent.name()}')
-                    # print(f'Negated:{is_negated}')
-                    # print(f'Arity:{fluent.arity()}')
-                    # print(f'Args:{arguments}')
-                    # print('\n')
+                    actions[action.name]["effects"].append({
+                        'fluent': fluent,
+                        'negated': is_negated,
+                        'args': list(arguments)
+                    })
+
         # ==== OBJECTS ====
+        objects = {}
         for obj in self.problem.all_objects():
-            self.problem_objects(obj)
+            objects[obj.name()] = obj.type().name()
 
         # ==== INITIAL FLUENTS ====
-        init = self.problem.initial_values()
+        initial_values = self.problem.initial_values()
+        init_block = []
+        for init in initial_values:
+            fluent_name: str = init.fluent().name()
+            init_fluent = {fluent_name: {}}
+            init_fluent[fluent_name]["args"] = list(init.args())
+            init_fluent[fluent_name]["value"] = initial_values[init]
+            init_block.append(init_fluent)
 
         return {
             'features': features,
             'problem_name': problem_name,
             'types': types,
+            'objects': objects,
             'predicates': fluents,
-            'init': init
+            'init': init_block
         }
