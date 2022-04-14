@@ -12,7 +12,7 @@ def main():
     problem: Problem = pddl_read.parse_problem('./pddl/domain.pddl', './pddl/instance-1.pddl')
 
     # ==== DOMAIN REQUIREMENTS ====
-    features = problem.kind().features()
+    features = list(problem.kind().features())
 
     # ==== PROBLEM NAME ====
     problem_name = problem.name
@@ -63,12 +63,14 @@ def main():
             for effect in action.effects():
                 fluent_node: FNode = effect.fluent()
                 fluent: str = fluent_node.fluent().name()
-                is_negated = not effect.value().is_true()
-                arguments = fluent_node.args()
+                is_negated: bool = not effect.value().is_true()
+                arguments = []
+                for arg in fluent_node.args():
+                    arguments.append(str(arg))
                 actions[action.name]["effects"].append({
                     'fluent': fluent,
                     'negated': is_negated,
-                    'args': list(arguments)
+                    'args': arguments
                 })
 
     # ==== OBJECTS ====
@@ -83,9 +85,12 @@ def main():
         fluent_name: str = init.fluent().name()
         if not init_block.get(fluent_name):
             init_block[fluent_name] = []
+        args = []
+        for arg in fluent_node.args():
+            args.append(str(arg))
         init_block[fluent_name].append({
-            "args": list(init.args()),
-            "value": initial_values[init]
+            "args": args,
+            "value": bool(initial_values[init])
         })
 
     pprint.pprint({

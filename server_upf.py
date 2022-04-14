@@ -66,7 +66,7 @@ class Worker(Thread):
                 if self.pdsim_reader is not None:
                     self._socket.send_json(self.pdsim_reader.pdsim_representation())
                 else:
-                    self._socket.send_json(json.dumps({'error': f'Server parser not initialized'}).encode('utf-8'))
+                    self._socket.send_json(json.dumps({'error': f'Server parser not initialized'}))
 
             elif unity_request['request'] == 'plan':
                 self._socket.send_json({'error': f'Not Implemented'})

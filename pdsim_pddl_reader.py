@@ -13,8 +13,9 @@ class PDSimReader:
         self.problem: Problem = self.reader.parse_problem(self.domain_path, self.problem_path)
 
     def pdsim_representation(self):
+
         # ==== DOMAIN REQUIREMENTS ====
-        features = self.problem.kind().features()
+        features = list(self.problem.kind().features())
 
         # ==== PROBLEM NAME ====
         problem_name = self.problem.name
@@ -53,24 +54,26 @@ class PDSimReader:
         actions = {}
         for action in self.problem.actions():
             actions[action.name] = {}
-            actions[action.name]["params"] = []
+            actions[action.name]["params"] = {}
             # Action's parameters  [name-type]
             for action_param in action.parameters():
                 param_name: str = action_param.name()
                 type_name = action_param.type().name()
-                actions[action.name]["params"].append({param_name: type_name})
+                actions[action.name]["params"][param_name] = type_name
             actions[action.name]["effects"] = []
             # Action's effects [name, negated, arguments (maps to parameters)]
             if isinstance(action, InstantaneousAction):
                 for effect in action.effects():
                     fluent_node: FNode = effect.fluent()
                     fluent: str = fluent_node.fluent().name()
-                    is_negated = not effect.value().is_true()
-                    arguments = fluent_node.args()
+                    is_negated: bool = not effect.value().is_true()
+                    arguments = []
+                    for arg in fluent_node.args():
+                        arguments.append(str(arg))
                     actions[action.name]["effects"].append({
                         'fluent': fluent,
                         'negated': is_negated,
-                        'args': list(arguments)
+                        'args': arguments
                     })
 
         # ==== OBJECTS ====
@@ -80,13 +83,18 @@ class PDSimReader:
 
         # ==== INITIAL FLUENTS ====
         initial_values = self.problem.initial_values()
-        init_block = []
+        init_block = {}
         for init in initial_values:
             fluent_name: str = init.fluent().name()
-            init_fluent = {fluent_name: {}}
-            init_fluent[fluent_name]["args"] = list(init.args())
-            init_fluent[fluent_name]["value"] = initial_values[init]
-            init_block.append(init_fluent)
+            if not init_block.get(fluent_name):
+                init_block[fluent_name] = []
+            args = []
+            for arg in init.args():
+                args.append(str(arg))
+            init_block[fluent_name].append({
+                "args": args,
+                "value": bool(initial_values[init])
+            })
 
         return {
             'features': features,
