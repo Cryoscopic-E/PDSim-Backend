@@ -1,88 +1,108 @@
 # test parser
-
-from pddl_parser import PDDLParser
-
-DOMAIN = """
-(define (domain logistics)
-(:requirements :strips :typing) 
-(:types  
-    city place physobj - object
-    airport location - place
-    package vehicle - physobj
-    truck airplane - vehicle
-)
-  
-(:predicates 	
-    (in-city ?loc - place ?city - city)
-	(at ?obj - physobj ?loc - place)
-	(in ?pkg - package ?veh - vehicle)
-)
-  
-(:action LOAD-TRUCK
-   :parameters    (?pkg - package ?truck - truck ?loc - place)
-   :precondition  (and (at ?truck ?loc) (at ?pkg ?loc))
-   :effect        (and (not (at ?pkg ?loc)) (in ?pkg ?truck)))
-
-(:action LOAD-AIRPLANE
-  :parameters   (?pkg - package ?airplane - airplane ?loc - place)
-  :precondition (and (at ?pkg ?loc) (at ?airplane ?loc))
-  :effect       (and (not (at ?pkg ?loc)) (in ?pkg ?airplane)))
-
-(:action UNLOAD-TRUCK
-  :parameters   (?pkg - package ?truck - truck ?loc - place)
-  :precondition (and (at ?truck ?loc) (in ?pkg ?truck))
-  :effect       (and (not (in ?pkg ?truck)) (at ?pkg ?loc)))
-
-(:action UNLOAD-AIRPLANE
-  :parameters    (?pkg - package ?airplane - airplane ?loc - place)
-  :precondition  (and (in ?pkg ?airplane) (at ?airplane ?loc))
-  :effect        (and (not (in ?pkg ?airplane)) (at ?pkg ?loc)))
-
-(:action DRIVE-TRUCK
-  :parameters (?truck - truck ?loc-from - place ?loc-to - place ?city - city)
-  :precondition
-   (and (at ?truck ?loc-from) (in-city ?loc-from ?city) (in-city ?loc-to ?city))
-  :effect
-   (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
-
-(:action FLY-AIRPLANE
-  :parameters (?airplane - airplane ?loc-from - airport ?loc-to - airport)
-  :precondition
-   (at ?airplane ?loc-from)
-  :effect
-   (and (not (at ?airplane ?loc-from)) (at ?airplane ?loc-to)))
-)"""
-
-PROBLEM = """
-(define (problem logistics-4-0)
-(:domain logistics)
-(:objects
- apn1 - airplane
- apt1 apt2 - airport
- pos2 pos1 - location
- cit2 cit1 - city
- tru2 tru1 - truck
- obj23 obj22 obj21 obj13 obj12 obj11 - package)
-
-(:init (at apn1 apt2) (at tru1 pos1) (at obj11 pos1)
- (at obj12 pos1) (at obj13 pos1) (at tru2 pos2) (at obj21 pos2) (at obj22 pos2)
- (at obj23 pos2) (in-city pos1 cit1) (in-city apt1 cit1) (in-city pos2 cit2)
- (in-city apt2 cit2))
-
-(:goal (and (at obj11 apt1) (at obj23 pos1) (at obj13 apt1) (at obj21 pos1)))
-)
-"""
+import pprint
+from unified_planning.shortcuts import *
+from unified_planning.io.pddl_reader import PDDLReader
+from unified_planning.model.problem import Problem
+from unified_planning.model.action import InstantaneousAction
+from unified_planning.model.fnode import FNode
 
 
 def main():
-    parser = PDDLParser()
-    parser.set_files(DOMAIN, PROBLEM)
-    out = parser.parse_pddl()
-    print(out)
-    with open("test.json", "w") as outfile:
-        outfile.write(out.decode("utf-8"))
-        pass
+    pddl_read = PDDLReader()
+    problem: Problem = pddl_read.parse_problem('./pddl/domain.pddl', './pddl/instance-1.pddl')
+
+    # ==== DOMAIN REQUIREMENTS ====
+    features = list(problem.kind().features())
+
+    # ==== PROBLEM NAME ====
+    problem_name = problem.name
+
+    # ==== TYPES ====
+    types = dict()
+    # root is object
+    types['object'] = list()
+    for t in problem.user_types():
+
+        # put type in list, if it doesn't exist
+        if types.get(t.name()) is None:
+            types[t.name()] = list()
+
+        parent_type = t.father()
+        if parent_type is None:
+            types['object'].append(t.name())
+
+        else:
+            if types.get(parent_type.name()) is None:
+                types[parent_type.name()] = list()
+            types[parent_type.name()].append(t.name())
+
+    # ==== PREDICATES ====
+    fluents = {}
+    fluent: Fluent
+    for fluent in problem.fluents():
+        fluent_name: str = fluent.name()
+        fluents[fluent_name] = {}
+        fluents[fluent_name]["arity"] = fluent.arity()
+        fluents[fluent_name]["args"] = []
+        for arg_type in fluent.signature():
+            fluents[fluent_name]["args"].append(arg_type.name())
+
+        # ==== ACTIONS ====
+    actions = {}
+    for action in problem.actions():
+        actions[action.name] = {}
+        actions[action.name]["params"] = {}
+        # Action's parameters  [name-type]
+        for action_param in action.parameters():
+            param_name: str = action_param.name()
+            type_name = action_param.type().name()
+            actions[action.name]["params"][param_name] = type_name
+        actions[action.name]["effects"] = []
+        # Action's effects [name, negated, arguments (maps to parameters)]
+        if isinstance(action, InstantaneousAction):
+            for effect in action.effects():
+                fluent_node: FNode = effect.fluent()
+                fluent: str = fluent_node.fluent().name()
+                is_negated: bool = not effect.value().is_true()
+                arguments = []
+                for arg in fluent_node.args():
+                    arguments.append(str(arg))
+                actions[action.name]["effects"].append({
+                    'fluent': fluent,
+                    'negated': is_negated,
+                    'args': arguments
+                })
+
+    # ==== OBJECTS ====
+    objects = {}
+    for obj in problem.all_objects():
+        objects[obj.name()] = obj.type().name()
+
+    # ==== INITIAL FLUENTS ====
+    initial_values = problem.initial_values()
+    init_block = {}
+    for init in initial_values:
+        fluent_name: str = init.fluent().name()
+        if not init_block.get(fluent_name):
+            init_block[fluent_name] = []
+        args = []
+        for arg in fluent_node.args():
+            args.append(str(arg))
+        init_block[fluent_name].append({
+            "args": args,
+            "value": bool(initial_values[init])
+        })
+
+    pprint.pprint({
+        'features': features,
+        'problem_name': problem_name,
+        'types': types,
+        'actions': actions,
+        'objects': objects,
+        'predicates': fluents,
+        'init': init_block
+    })
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

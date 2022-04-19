@@ -48,7 +48,7 @@ dependencies:
     - pyparsing==3.0.7
     - pyperplan==2.1
     - tarski==0.7.0
-    - unified-planning==0.0.1.dev69
-    - up-pyperplan==0.0.1
-    - up-tamer==0.0.1
+    - external/unified-planning
+    - external/up-pyperplan
+    - external/up-tamer
 prefix: /home/emanuele/miniconda3/envs/pdsim
