@@ -93,22 +93,7 @@ class PDDLParser(FstripsReader):
                         {"predicate": effect_predicate.symbol,
                          "param_index": indexes,
                          "negated": isinstance(effect, DelEffect)})
-                #action = {"name": a.lower()}
-                # action_class = problem.get_action(a)
-                # action["params"] = [
-                #     p.sort.name for p in action_class.parameters]
-                # action["effect"] = []
-                # params = [p.symbol for p in action_class.parameters]
-                # for effect in action_class.effects:
-                #     effect_predicate = effect.atom.predicate
-                #     effect_params = effect.atom.subterms
-                #     indexes = [params.index(ep.symbol) for ep in effect_params]
-                #     action["effect"].append(
-                #         {"predicate": effect_predicate.symbol,
-                #          "param_indx": indexes,
-                #          "negated": isinstance(effect, DelEffect)})
-                # actions.append(action)
-
+            
             output["instance_name"] = problem_name
             output["objects"] = objects
             output["predicates"] = predicates
