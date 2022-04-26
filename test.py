@@ -45,9 +45,9 @@ def main():
         fluent_name: str = fluent.name
         fluents[fluent_name] = {}
         fluents[fluent_name]["arity"] = fluent.arity
-        fluents[fluent_name]["args"] = []
+        fluents[fluent_name]["args"] = {}
         for arg_type in fluent.signature:
-            fluents[fluent_name]["args"].append({'name':arg_type.name,'type':arg_type.type.name})
+            fluents[fluent_name]["args"][arg_type.name]= arg_type.type.name
 
         # ==== ACTIONS ====
     actions = {}
