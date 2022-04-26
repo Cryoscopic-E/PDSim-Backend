@@ -9,7 +9,8 @@ from unified_planning.model.fnode import FNode
 
 def main():
     pddl_read = PDDLReader()
-    problem: Problem = pddl_read.parse_problem('./pddl/domain.pddl', './pddl/instance-1.pddl')
+    problem: Problem = pddl_read.parse_problem('./pddl/logistics-domain.pddl', './pddl/logistics-instance.pddl')
+    #problem: Problem = pddl_read.parse_problem('./pddl/elevator-domain-ut.pddl', './pddl/elevator-problem-ut.pddl')
 
     # ==== DOMAIN REQUIREMENTS ====
     features = list(problem.kind.features)
@@ -21,20 +22,21 @@ def main():
     types = dict()
     # root is object
     types['object'] = list()
-    for t in problem.user_types:
+    #  if user types are defined
+    if len(problem.user_types) > 1:
+        for t in problem.user_types:
+            # put type in list, if it doesn't exist
+            if types.get(t.name) is None:
+                types[t.name] = list()
 
-        # put type in list, if it doesn't exist
-        if types.get(t.name) is None:
-            types[t.name] = list()
+            parent_type = t.father
+            if parent_type is None:
+                types['object'].append(t.name)
 
-        parent_type = t.father
-        if parent_type is None:
-            types['object'].append(t.name)
-
-        else:
-            if types.get(parent_type.name) is None:
-                types[parent_type.name] = list()
-            types[parent_type.name].append(t.name)
+            else:
+                if types.get(parent_type.name) is None:
+                    types[parent_type.name] = list()
+                types[parent_type.name].append(t.name)
 
     # ==== PREDICATES ====
     fluents = {}
@@ -45,7 +47,7 @@ def main():
         fluents[fluent_name]["arity"] = fluent.arity
         fluents[fluent_name]["args"] = []
         for arg_type in fluent.signature:
-            fluents[fluent_name]["args"].append(arg_type.name)
+            fluents[fluent_name]["args"].append({'name':arg_type.name,'type':arg_type.type.name})
 
         # ==== ACTIONS ====
     actions = {}
