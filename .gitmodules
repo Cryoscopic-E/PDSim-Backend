@@ -5,3 +5,6 @@
 [submodule "external/up-pyperplan"]
 	path = external/up-pyperplan
 	url = https://github.com/aiplan4eu/up-pyperplan.git
+[submodule "external/fdownward"]
+	path = external/fdownward
+	url = https://github.com/aibasel/downward.git
