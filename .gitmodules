@@ -1,6 +1,4 @@
-[submodule "external/fdownward"]
-	path = external/fdownward
-	url = https://github.com/aibasel/downward
+
 [submodule "external/unified-planning"]
 	path = external/unified-planning
 	url = https://github.com/aiplan4eu/unified-planning.git
