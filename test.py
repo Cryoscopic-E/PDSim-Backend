@@ -9,7 +9,8 @@ from unified_planning.model.fnode import FNode
 
 def main():
     pddl_read = PDDLReader()
-    problem: Problem = pddl_read.parse_problem('./pddl/logistics-domain.pddl', './pddl/logistics-instance.pddl')
+    problem: Problem = pddl_read.parse_problem('./pddl/blocks-domain.pddl', './pddl/blocks-instance.pddl')
+    #problem: Problem = pddl_read.parse_problem('./pddl/logistics-domain.pddl', './pddl/logistics-instance.pddl')
     #problem: Problem = pddl_read.parse_problem('./pddl/elevator-domain-ut.pddl', './pddl/elevator-problem-ut.pddl')
 
     # ==== DOMAIN REQUIREMENTS ====

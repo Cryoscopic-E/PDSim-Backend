@@ -1,35 +1,39 @@
 import json
 import zmq
 import time
+import signal
 from pdsim_pddl_reader import PDSimReader
 from solver import request_plan
-from flask import Flask, render_template, url_for
 from pyparsing.exceptions import ParseBaseException
-from threading import Thread
 from os.path import isfile
 
 HOST = '127.0.0.1'
 PORT = 5556
 
+def server_main():
+        pdsim_reader : PDSimReader = None
+        context = zmq.Context()
+        socket: zmq.Socket = context.socket(zmq.REP)
+        active = True
 
-class Worker(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-        self.pdsim_reader = None
-        self._context = zmq.Context()
-        self._socket: zmq.Socket = self._context.socket(zmq.REP)
-        self.active = True
 
-    def run(self):
-        self._socket.bind('tcp://{}:{}'.format(HOST, PORT))
+        print ('##########################')
+        print ('####   PDSim SERVER   ####')
+        print ('##########################')
+
+        socket.bind('tcp://{}:{}'.format(HOST, PORT))
         
-        while self.active:
-            #  Wait for next request from client
-            unity_request = self._socket.recv_json()
+        print(f'Server running on port {PORT}..')
+        
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-            if unity_request['request'] == 'init':
-                d_path = unity_request['domain_path']
-                p_path = unity_request['problem_path']
+        while active:
+            #  Wait for next request from client
+            request = socket.recv()
+            print(request)
+            if request['request'] == 'init':
+                d_path = request['domain_path']
+                p_path = request['problem_path']
 
                 d_file_exist = isfile(d_path)
                 p_file_exist = isfile(p_path)
@@ -42,40 +46,49 @@ class Worker(Thread):
                         error_msg += "<Domain>"
                     if not p_file_exist:
                         error_msg += "<Problem>"
-                    self._socket.send_json(json.dumps(
+                    socket.send_json(json.dumps(
                         {'error': f'File(s) not in the specified path ({error_msg})'}).encode('utf-8'))
                 else:
                     try:
-                        self.pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
+                        pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
+                        socket.send_json({'OK': 'Initialized'})
                     except ParseBaseException as pbe:
-                        self.pdsim_reader = None
+                        pdsim_reader = None
                         error_msg += pbe.msg
-                        self._socket.send_json({'parse_error': f'Parse Error: ({error_msg})'})
+                        socket.send_json({'parse_error': f'Parse Error: ({error_msg})'})
                     except SyntaxError as se:
-                        self.pdsim_reader = None
+                        pdsim_reader = None
                         error_msg += se.msg
-                        self._socket.send_json({'syntax_error': f'Parse Error: ({error_msg})'})
+                        socket.send_json({'syntax_error': f'Parse Error: ({error_msg})'})
+                    except AssertionError:
+                        pdsim_reader = None
+                        error_msg += 'Check domain/problem files'
+                        socket.send_json({'assertion_error': f'Parse Error: {error_msg}'})
+                    except Exception:
+                        pdsim_reader = None
+                        error_msg += 'Check validity domain and/or problem files'
+                        socket.send_json({'error': f'Parse Error: ({error_msg})'})
                     finally:
-                        self._socket.send_json({'OK': 'Initialized'})
+                        if error_msg:
+                            print(f'Error? {error_msg}')
+                            print('Server not initialized')
+                        else:
+                            print(f'Server initialized with domain at: {d_path}')
+                            print(f'Server initialized with problem at: {p_path}')
 
-                print(f'Error? {error_msg}')
-                print(f'Init with domain path {d_path}')
-                print(f'Init with problem path {p_path}')
-
-            elif unity_request['request'] == 'components':
-                if self.pdsim_reader is not None:
-                    self._socket.send_json(self.pdsim_reader.pdsim_representation())
+            elif request['request'] == 'components':
+                if pdsim_reader is not None:
+                    socket.send_json(pdsim_reader.pdsim_representation())
                 else:
-                    self._socket.send_json(json.dumps({'error': f'Server parser not initialized'}))
+                    socket.send_json(json.dumps({'error': f'Server parser not initialized'}))
 
-            elif unity_request['request'] == 'plan':
-                self._socket.send_json({'error': f'Not Implemented'})
+            elif request['request'] == 'plan':
+                socket.send_json({'error': f'Not Implemented'})
             else:
-                pass
-
+                print('Invalid Request..')
+                socket.send_json({'error': 'Invalid request'})
             time.sleep(0.1)
 
 
 if __name__ == '__main__':
-    worker = Worker()
-    worker.start()
+    server_main()
