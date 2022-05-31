@@ -29,8 +29,8 @@ def server_main():
 
         while active:
             #  Wait for next request from client
-            request = socket.recv()
-            print(request)
+            request = socket.recv_json()
+            
             if request['request'] == 'init':
                 d_path = request['domain_path']
                 p_path = request['problem_path']
