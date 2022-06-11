@@ -26,7 +26,6 @@ class PDSimReader:
         # root is object
         types['object'] = list()
         #  if user types are defined
-        print(self.problem.user_types)
         if len(self.problem.user_types) >= 1:
             for t in self.problem.user_types:
                 # put type in list, if it doesn't exist
