@@ -3,7 +3,7 @@ import zmq
 import time
 import signal
 from pdsim_pddl_reader import PDSimReader
-from solver import request_plan
+from pdsim_pddl_solver import PDSimSolver
 from pyparsing.exceptions import ParseBaseException
 from os.path import isfile
 
@@ -12,6 +12,7 @@ PORT = 5556
 
 def server_main():
         pdsim_reader : PDSimReader = None
+        pdsim_solver : PDSimSolver = None
         context = zmq.Context()
         socket: zmq.Socket = context.socket(zmq.REP)
         active = True
@@ -51,21 +52,26 @@ def server_main():
                 else:
                     try:
                         pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
+                        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem)
                         socket.send_json({'OK': 'Initialized'})
                     except ParseBaseException as pbe:
                         pdsim_reader = None
+                        pdsim_solver = None
                         error_msg += pbe.msg
                         socket.send_json({'parse_error': f'Parse Error: ({error_msg})'})
                     except SyntaxError as se:
                         pdsim_reader = None
+                        pdsim_solver = None
                         error_msg += se.msg
                         socket.send_json({'syntax_error': f'Parse Error: ({error_msg})'})
                     except AssertionError:
                         pdsim_reader = None
+                        pdsim_solver = None
                         error_msg += 'Check domain/problem files'
                         socket.send_json({'assertion_error': f'Parse Error: {error_msg}'})
                     except Exception:
                         pdsim_reader = None
+                        pdsim_solver = None
                         error_msg += 'Check validity domain and/or problem files'
                         socket.send_json({'error': f'Parse Error: ({error_msg})'})
                     finally:
@@ -83,7 +89,10 @@ def server_main():
                     socket.send_json(json.dumps({'error': f'Server parser not initialized'}))
 
             elif request['request'] == 'plan':
-                socket.send_json({'error': f'Not Implemented'})
+                if pdsim_solver is not None:
+                    socket.send_json(pdsim_solver.solve())
+                else:
+                    socket.send_json(json.dumps({'error': f'Server solver not initialized'}))
             else:
                 print('Invalid Request..')
                 socket.send_json({'error': 'Invalid request'})
