@@ -25,8 +25,14 @@ class PDSimReader:
         types = dict()
         # root is object
         types['object'] = list()
+        
+        # only 1 type (userdefined, or no types)
+        if len(self.problem.user_types) == 1:
+            if self.problem.user_types[0].name != 'object':
+                types['object'].append(self.problem.user_types[0].name)
+                types[self.problem.user_types[0].name] = []
         #  if user types are defined
-        if len(self.problem.user_types) >= 1:
+        elif len(self.problem.user_types) > 1:
             for t in self.problem.user_types:
                 # put type in list, if it doesn't exist
                 if types.get(t.name) is None:
@@ -97,7 +103,6 @@ class PDSimReader:
                 "args": args,
                 "value": bool(initial_values[init])
             })
-
         return {
             'features': features,
             'problem_name': problem_name,

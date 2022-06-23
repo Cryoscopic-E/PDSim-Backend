@@ -30,9 +30,9 @@
   )
 
   (:action UNLOAD-TRUCK
-    :parameters (?pkg - package ?truck - truck ?loc - place)
-    :precondition (and (at ?truck ?loc) (in ?pkg ?truck))
-    :effect (and (not (in ?pkg ?truck)) (at ?pkg ?loc))
+    :parameters (?pk - package ?truck - truck ?loc - place)
+    :precondition (and (at ?truck ?loc) (in ?pk ?truck))
+    :effect (and (not (in ?pk ?truck)) (at ?pk ?loc))
   )
 
   (:action UNLOAD-AIRPLANE

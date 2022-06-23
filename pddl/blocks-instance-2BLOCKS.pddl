@@ -1,0 +1,7 @@
+(define (problem BLOCKS-2-0)
+(:domain BLOCKS)
+(:objects A B - block)
+(:init (clear A) (clear B) (ontable A)
+ (ontable B))
+(:goal (and (on B A)))
+)
