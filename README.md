@@ -18,13 +18,9 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
 
     `cd PDSim-Backend`
 
-- Install UPF and modules
-
-    `git submodule update --init --recursive`
-
 - Create pdsim anaconda environment
 
-    `conda env create -f environment-<YOUR_OS>.yml`
+    `conda env create -f environment.yml`
 
 ## Usage
 
