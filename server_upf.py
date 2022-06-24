@@ -2,6 +2,7 @@ import json
 import zmq
 import time
 import signal
+import pprint
 from pdsim_pddl_reader import PDSimReader
 from pdsim_pddl_solver import PDSimSolver
 from pyparsing.exceptions import ParseBaseException
@@ -89,8 +90,13 @@ def server_main():
                     socket.send_json(json.dumps({'error': f'Server parser not initialized'}))
 
             elif request['request'] == 'plan':
+                print("##### Plan Requested ####")
                 if pdsim_solver is not None:
-                    socket.send_json(pdsim_solver.solve())
+                    print("Sending plan")
+                    plan = pdsim_solver.solve()
+                    pprint.pprint(plan)
+                    socket.send_json(json.dumps(plan))
+                    print("##### Plan Sent ####")
                 else:
                     socket.send_json(json.dumps({'error': f'Server solver not initialized'}))
             else:
