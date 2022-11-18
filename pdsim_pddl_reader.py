@@ -3,15 +3,19 @@ from unified_planning.io.pddl_reader import PDDLReader
 from unified_planning.model.problem import Problem
 from unified_planning.model.action import InstantaneousAction
 from unified_planning.model.fnode import FNode
-
+from unified_planning.exceptions import *
 
 class PDSimReader:
     def __init__(self, domain_path, problem_path):
         self.domain_path: str = domain_path
         self.problem_path: str = problem_path
         self.reader: PDDLReader = PDDLReader()
-        self.problem: Problem = self.reader.parse_problem(
-            self.domain_path, self.problem_path)
+        self.problem: Problem = None
+        try:
+            problem = self.reader.parse_problem(domain_path, problem_path)
+            self.problem: Problem = problem
+        except UPProblemDefinitionError as e:
+            print("Error while parsing problem: " + str(e))
 
     def pdsim_representation(self):
 
