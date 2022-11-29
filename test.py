@@ -1,5 +1,6 @@
 # test parser
 import pprint
+import json
 from pdsim_pddl_reader import PDSimReader
 from pdsim_pddl_solver import PDSimSolver
 from unified_planning.shortcuts import *
@@ -16,6 +17,9 @@ def main():
     #pdsim_reader: PDSimReader = PDSimReader('./pddl/elevator-domain-ut.pddl', './pddl/elevator-problem-ut.pddl')
     #pprint.pprint(pdsim_reader.pdsim_representation())
     pdsim_reader: PDSimReader = PDSimReader('./pddl/domain.pddl',  './pddl/problem1.pddl')
+    #save to json
+    with open('pdsim_representation.json', 'w') as outfile:
+        json.dump(pdsim_reader.pdsim_representation(), outfile)
     if pdsim_reader.problem is not None:
         pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem)
         pprint.pprint(pdsim_solver.solve())

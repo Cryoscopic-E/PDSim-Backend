@@ -11,11 +11,8 @@ class PDSimReader:
         self.problem_path: str = problem_path
         self.reader: PDDLReader = PDDLReader()
         self.problem: Problem = None
-        try:
-            problem = self.reader.parse_problem(domain_path, problem_path)
-            self.problem: Problem = problem
-        except UPProblemDefinitionError as e:
-            print("Error while parsing problem: " + str(e))
+        problem = self.reader.parse_problem(domain_path, problem_path)
+        self.problem: Problem = problem
 
     def pdsim_representation(self):
 
@@ -94,14 +91,14 @@ class PDSimReader:
             objects[obj.name] = obj.type.name
 
         # ==== INITIAL FLUENTS ====
-        initial_values = self.problem.initial_values
+        initial_values = self.problem.explicit_initial_values
         init_block = {}
         for init in initial_values:
             fluent_name: str = init.fluent().name
             if not init_block.get(fluent_name):
                 init_block[fluent_name] = []
             args = []
-            for arg in fluent_node.args:
+            for arg in init.args:
                 args.append(str(arg))
             init_block[fluent_name].append({
                 "args": args,

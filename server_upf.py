@@ -32,8 +32,8 @@ def server_main():
         while active:
             #  Wait for next request from client
             request = socket.recv_json()
-            
-            if request['request'] == 'init':
+            print(request)
+            if request['request'] == 'parse':
                 d_path = request['domain_path']
                 p_path = request['problem_path']
 
@@ -54,7 +54,10 @@ def server_main():
                     try:
                         pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
                         pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem)
-                        socket.send_json({'OK': 'Initialized'})
+                        response = pdsim_reader.pdsim_representation()
+                        plan = pdsim_solver.solve()
+                        response['plan'] = plan
+                        socket.send_json(json.dumps(response).encode('utf-8'))
                     except ParseBaseException as pbe:
                         pdsim_reader = None
                         pdsim_solver = None
@@ -83,22 +86,9 @@ def server_main():
                             print(f'Server initialized with domain at: {d_path}')
                             print(f'Server initialized with problem at: {p_path}')
 
-            elif request['request'] == 'components':
-                if pdsim_reader is not None:
-                    socket.send_json(pdsim_reader.pdsim_representation())
-                else:
-                    socket.send_json(json.dumps({'error': f'Server parser not initialized'}))
-
-            elif request['request'] == 'plan':
-                print("##### Plan Requested ####")
-                if pdsim_solver is not None:
-                    print("Sending plan")
-                    plan = pdsim_solver.solve()
-                    pprint.pprint(plan)
-                    socket.send_json(json.dumps(plan))
-                    print("##### Plan Sent ####")
-                else:
-                    socket.send_json(json.dumps({'error': f'Server solver not initialized'}))
+            elif request['request'] == 'test':
+                print("Test request received")
+                socket.send_json({'status': 'OK'})
             else:
                 print('Invalid Request..')
                 socket.send_json({'error': 'Invalid request'})

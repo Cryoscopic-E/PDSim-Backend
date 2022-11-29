@@ -31,7 +31,7 @@
   :precondition (and 
 		(robot-at ?r ?c)
   		(robot-empty ?r) 
-		;(box-at ?b ?c)
+		(box-at ?b ?c)
 		)
   :effect (and 
   		(not (robot-empty ?r))
