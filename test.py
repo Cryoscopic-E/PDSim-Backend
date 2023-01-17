@@ -23,7 +23,7 @@ def main():
     
 
     if pdsim_reader.problem is not None:
-        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, pdsim_reader.domain_path, pdsim_reader.problem_path, 'pyperplan')
+        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, pdsim_reader.domain_path, pdsim_reader.problem_path, 'fast-downward')
         pprint.pprint(pdsim_solver.solve())
     else:
         print("Error: could not parse problem")

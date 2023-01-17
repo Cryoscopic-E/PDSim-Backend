@@ -57,27 +57,28 @@ def server_main():
                         response = pdsim_reader.pdsim_representation()
                         plan = pdsim_solver.solve()
                         response['plan'] = plan
+                        response['status'] = 'OK'
                         socket.send_json(json.dumps(response).encode('utf-8'))
                     except ParseBaseException as pbe:
                         pdsim_reader = None
                         pdsim_solver = None
                         error_msg += pbe.msg
-                        socket.send_json({'parse_error': f'Parse Error: ({error_msg})'})
+                        socket.send_json({'status':'ERR','parse_error': f'Parse Error: ({error_msg})'})
                     except SyntaxError as se:
                         pdsim_reader = None
                         pdsim_solver = None
                         error_msg += se.msg
-                        socket.send_json({'syntax_error': f'Parse Error: ({error_msg})'})
+                        socket.send_json({'status':'ERR','syntax_error': f'Parse Error: ({error_msg})'})
                     except AssertionError:
                         pdsim_reader = None
                         pdsim_solver = None
                         error_msg += 'Check domain/problem files'
-                        socket.send_json({'assertion_error': f'Parse Error: {error_msg}'})
+                        socket.send_json({'status':'ERR','assertion_error': f'Parse Error: {error_msg}'})
                     except Exception:
                         pdsim_reader = None
                         pdsim_solver = None
                         error_msg += 'Check validity domain and/or problem files'
-                        socket.send_json({'error': f'Parse Error: ({error_msg})'})
+                        socket.send_json({'status':'ERR','error': f'Parse Error: ({error_msg})'})
                     finally:
                         if error_msg:
                             print(f'Error? {error_msg}')
@@ -91,7 +92,7 @@ def server_main():
                 socket.send_json({'status': 'OK'})
             else:
                 print('Invalid Request..')
-                socket.send_json({'error': 'Invalid request'})
+                socket.send_json({'status':'ERR','error': 'Invalid request'})
             time.sleep(0.1)
 
 
