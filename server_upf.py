@@ -2,7 +2,6 @@ import json
 import zmq
 import time
 import signal
-import pprint
 from pdsim_pddl_reader import PDSimReader
 from pdsim_pddl_solver import PDSimSolver
 from pyparsing.exceptions import ParseBaseException
@@ -53,12 +52,21 @@ def server_main():
                 else:
                     try:
                         pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
-                        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem)
+                        #pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, d_path, p_path, 'fast-downward')
                         response = pdsim_reader.pdsim_representation()
-                        plan = pdsim_solver.solve()
-                        response['plan'] = plan
+                        #plan = pdsim_solver.solve()
+                        #response['plan'] = plan
                         response['status'] = 'OK'
-                        socket.send_json(json.dumps(response).encode('utf-8'))
+                        
+                        try:
+                            j = json.dumps(response).encode('utf-8')
+                        except Exception as e:
+                            print(e)
+                        try:
+                            socket.send_string(j.decode('utf-8'))
+                        except Exception as e:
+                            print("FEfwegwg")
+                            print(e)
                     except ParseBaseException as pbe:
                         pdsim_reader = None
                         pdsim_solver = None
@@ -74,18 +82,27 @@ def server_main():
                         pdsim_solver = None
                         error_msg += 'Check domain/problem files'
                         socket.send_json({'status':'ERR','assertion_error': f'Parse Error: {error_msg}'})
-                    except Exception:
+                    except TimeoutError:
                         pdsim_reader = None
                         pdsim_solver = None
-                        error_msg += 'Check validity domain and/or problem files'
-                        socket.send_json({'status':'ERR','error': f'Parse Error: ({error_msg})'})
+                        error_msg += 'Timeout'
+                        socket.send_json({'status':'ERR','timeout_error': f'Parse Error: {error_msg}'})
+                    except TypeError as te:
+                        pdsim_reader = None
+                        pdsim_solver = None
+                        print(te)
+                        error_msg += 'Inappropriate argument type: ' + str(te)
+                        socket.send_json({'status':'ERR','type_error': f'Type Error: {error_msg}'})
+                    except Exception as e:
+                        pdsim_reader = None
+                        pdsim_solver = None
+                        print(e)
+                        socket.send_json({'status':'ERR','error': f'Check Server logs'})
                     finally:
                         if error_msg:
                             print(f'Error? {error_msg}')
-                            print('Server not initialized')
                         else:
-                            print(f'Server initialized with domain at: {d_path}')
-                            print(f'Server initialized with problem at: {p_path}')
+                            print('Response sent')
 
             elif request['request'] == 'test':
                 print("Test request received")

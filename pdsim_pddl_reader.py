@@ -6,70 +6,65 @@ from unified_planning.model.fnode import FNode
 from unified_planning.exceptions import *
 
 class PDSimReader:
-    def __init__(self, domain_path, problem_path):
-        self.domain_path: str = domain_path
-        self.problem_path: str = problem_path
-        self.reader: PDDLReader = PDDLReader()
-        self.problem: Problem = None
-        problem = self.reader.parse_problem(domain_path, problem_path)
-        self.problem: Problem = problem
-
+    def __init__(self, domain_path, problem_path) -> None:
+        self.problem = PDDLReader().parse_problem(domain_path, problem_path)
+    
     def pdsim_representation(self):
+        if self.problem is None:
+            raise Exception("Error: Parser Not Initialized")
+        else:
+            return self._pdsim_representation()
 
-       # ==== DOMAIN REQUIREMENTS ====
+    def _pdsim_representation(self):
+        # ==== DOMAIN FEATURES ====
         features = list(self.problem.kind.features)
-
+        
         # ==== PROBLEM NAME ====
-        problem_name = self.problem.name
+        problem_name = self.problem.name if self.problem.has_name else 'problem'
 
         # ==== TYPES ====
+        
         types = dict()
         # root is object
-        types['object'] = list()
-        
+        types.setdefault('object', [])
+
         # only 1 type (userdefined, or no types)
         if len(self.problem.user_types) == 1:
             if self.problem.user_types[0].name != 'object':
                 types['object'].append(self.problem.user_types[0].name)
-                types[self.problem.user_types[0].name] = []
+                types.setdefault(self.problem.user_types[0].name, [])
         #  if user types are defined
         elif len(self.problem.user_types) > 1:
             for t in self.problem.user_types:
-                # put type in list, if it doesn't exist
-                if types.get(t.name) is None:
-                    types[t.name] = list()
-
+                types.setdefault(t.name, [])
                 parent_type = t.father
                 if parent_type is None:
                     types['object'].append(t.name)
-
                 else:
-                    if types.get(parent_type.name) is None:
-                        types[parent_type.name] = list()
-                    types[parent_type.name].append(t.name)
+                    types.setdefault(parent_type.name, []).append(t.name)
 
-        # ==== PREDICATES ====
+        # ==== FLUENTS ====
         fluents = {}
         fluent: Fluent
         for fluent in self.problem.fluents:
             fluent_name: str = fluent.name
             fluents[fluent_name] = {}
-            fluents[fluent_name]["arity"] = fluent.arity
+            fluents[fluent_name]["arity"] : int = fluent.arity
             fluents[fluent_name]["args"] = {}
             for arg_type in fluent.signature:
-                fluents[fluent_name]["args"][arg_type.name] = arg_type.type.name
+                fluents[fluent_name]["args"][arg_type.name] :str = arg_type.type.name
 
-            # ==== ACTIONS ====
+        # ==== ACTIONS ====
         actions = {}
         for action in self.problem.actions:
-            actions[action.name] = {}
-            actions[action.name]["params"] = {}
+            actions.setdefault(action.name, {})
+            actions[action.name].setdefault("params", {})
             # Action's parameters  [name-type]
             for action_param in action.parameters:
                 param_name: str = action_param.name
-                type_name = action_param.type.name
+                type_name: str = action_param.type.name
                 actions[action.name]["params"][param_name] = type_name
-            actions[action.name]["effects"] = []
+            actions[action.name].setdefault("effects", [])
             # Action's effects [name, negated, arguments (maps to parameters)]
             if isinstance(action, InstantaneousAction):
                 for effect in action.effects:
@@ -84,19 +79,17 @@ class PDSimReader:
                         'negated': is_negated,
                         'args': arguments
                     })
-
         # ==== OBJECTS ====
         objects = {}
         for obj in self.problem.all_objects:
-            objects[obj.name] = obj.type.name
-
-        # ==== INITIAL FLUENTS ====
+            objects[obj.name] :str = obj.type.name
+        
+        # ==== INITIAL STATE ====
         initial_values = self.problem.explicit_initial_values
         init_block = {}
         for init in initial_values:
             fluent_name: str = init.fluent().name
-            if not init_block.get(fluent_name):
-                init_block[fluent_name] = []
+            init_block.setdefault(fluent_name, [])
             args = []
             for arg in init.args:
                 args.append(str(arg))
@@ -104,12 +97,13 @@ class PDSimReader:
                 "args": args,
                 "value": bool(initial_values[init])
             })
+        
+
         return {
             'features': features,
             'problem_name': problem_name,
             'types': types,
+            'predicates': fluents,
             'actions': actions,
             'objects': objects,
-            'predicates': fluents,
-            'init': init_block
-        }
+            'init': init_block}
