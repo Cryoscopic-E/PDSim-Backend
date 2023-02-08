@@ -96,8 +96,7 @@ class PDSimReader:
             init_block[fluent_name].append({
                 "args": args,
                 "value": bool(initial_values[init])
-            })
-        
+            })   
 
         return {
             'features': features,

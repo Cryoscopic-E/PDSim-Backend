@@ -37,6 +37,7 @@ class PDSimSolver:
         return {'action_name': action[0], 'parameters': action[1:]}
 
     def solve(self):
+        print("Solving problem...")
         planner_output = {}
         action_list = []
         result = None
@@ -46,15 +47,19 @@ class PDSimSolver:
             if result['parse_status'] == 'ok':
                 for action in result['plan']:
                     action_list.append(self.parse_planning_domains_action(action['name']))
-                planner_output['plan'] = action_list
+                planner_output['actions'] = action_list
+                
             else:
                 planner_output['error'] = result['error']
+                print(result['error'])
         else:
             result = self.planner.solve(self.cached_problem)
+            print(result)
             if result.status == PlanGenerationResultStatus.SOLVED_SATISFICING:
                 for action in result.plan.actions:
                     action_list.append(self.action_info(action))
-                planner_output['plan'] = action_list
+                planner_output['actions'] = action_list
             else:
                 planner_output['error'] = 'Error solving plan'
+                print(result['error'])
         return planner_output
