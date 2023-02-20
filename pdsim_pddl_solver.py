@@ -46,7 +46,7 @@ class PDSimSolver:
             if result['parse_status'] == 'ok':
                 for action in result['plan']:
                     action_list.append(self.parse_planning_domains_action(action['name']))
-                planner_output['plan'] = action_list
+                planner_output['actions'] = action_list
             else:
                 planner_output['error'] = result['error']
         else:
@@ -54,7 +54,7 @@ class PDSimSolver:
             if result.status == PlanGenerationResultStatus.SOLVED_SATISFICING:
                 for action in result.plan.actions:
                     action_list.append(self.action_info(action))
-                planner_output['plan'] = action_list
+                planner_output['actions'] = action_list
             else:
                 planner_output['error'] = 'Error solving plan'
         return planner_output

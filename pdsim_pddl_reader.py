@@ -4,7 +4,9 @@ from unified_planning.model.problem import Problem
 from unified_planning.model.action import InstantaneousAction
 from unified_planning.model.fnode import FNode
 from unified_planning.exceptions import *
+from unified_planning.model.operators import OperatorKind
 
+import pprint
 class PDSimReader:
     def __init__(self, domain_path, problem_path) -> None:
         self.problem = PDDLReader().parse_problem(domain_path, problem_path)
@@ -98,6 +100,35 @@ class PDSimReader:
                 "value": bool(initial_values[init])
             })
         
+        
+        # ==== GOAL STATE====
+
+        goals = self.problem.goals
+        goal_block = {}
+
+        for goal in goals:
+            if goal.node_type == OperatorKind.FLUENT_EXP:
+                fluent_name: str = goal.fluent().name
+                goal_block.setdefault(fluent_name, [])
+                args = []
+                for arg in goal.args:
+                    args.append(str(arg))
+                goal_block[fluent_name].append({
+                    "args": args,
+                    "value": not goal.is_not()
+                })
+            elif goal.node_type == OperatorKind.AND:
+                sub_goals = goal.args
+                for sub_goal in sub_goals:
+                    fluent_name: str = sub_goal.fluent().name
+                    goal_block.setdefault(fluent_name, [])
+                    args = []
+                    for arg in sub_goal.args:
+                        args.append(str(arg))
+                    goal_block[fluent_name].append({
+                        "args": args,
+                        "value": not sub_goal.is_not()
+                    })
 
         return {
             'features': features,
@@ -106,4 +137,5 @@ class PDSimReader:
             'predicates': fluents,
             'actions': actions,
             'objects': objects,
-            'init': init_block}
+            'init': init_block,
+            'goal': goal_block}
