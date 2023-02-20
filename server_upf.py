@@ -1,6 +1,7 @@
 import json
 import zmq
 import time
+import pprint
 import signal
 from pdsim_pddl_reader import PDSimReader
 from pdsim_pddl_solver import PDSimSolver
@@ -56,8 +57,10 @@ def server_main():
                         response = pdsim_reader.pdsim_representation()
                         plan = pdsim_solver.solve()
                         response['plan'] = plan
+                        plan = pdsim_solver.solve()
+                        response['plan'] = plan
                         response['status'] = 'OK'
-                        
+                        pprint.pprint(plan)
                         try:
                             j = json.dumps(response).encode('utf-8')
                         except Exception as e:
