@@ -57,8 +57,6 @@ def server_main():
                         response = pdsim_reader.pdsim_representation()
                         plan = pdsim_solver.solve()
                         response['plan'] = plan
-                        plan = pdsim_solver.solve()
-                        response['plan'] = plan
                         response['status'] = 'OK'
                         pprint.pprint(plan)
                         try:
