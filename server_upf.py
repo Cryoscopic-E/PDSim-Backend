@@ -58,7 +58,6 @@ def server_main():
                         plan = pdsim_solver.solve()
                         response['plan'] = plan
                         response['status'] = 'OK'
-                        pprint.pprint(plan)
                         try:
                             j = json.dumps(response).encode('utf-8')
                         except Exception as e:
@@ -66,7 +65,6 @@ def server_main():
                         try:
                             socket.send_string(j.decode('utf-8'))
                         except Exception as e:
-                            print("FEfwegwg")
                             print(e)
                     except ParseBaseException as pbe:
                         pdsim_reader = None
