@@ -7,6 +7,7 @@ import sys
 
 class PlanningDomainsSolver:
     def __init__(self, domain_file:str, problem_file:str) -> None:
+        get_environment().credits_stream = None
         self.data = {'domain': open(domain_file, 'r').read(),
                     'problem': open(problem_file, 'r').read()}
 

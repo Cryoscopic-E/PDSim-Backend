@@ -1,3 +1,4 @@
-unified-planning[pyperplan, tamer, fast-downward]
 pyzmq
 requests
+--pre 
+unified-planning[fast-downward,pyperplan,tamer]

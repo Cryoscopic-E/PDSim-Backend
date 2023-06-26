@@ -53,7 +53,7 @@ def server_main():
                 else:
                     try:
                         pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
-                        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, d_path, p_path, 'fast-downward')
+                        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, d_path, p_path)
                         response = pdsim_reader.pdsim_representation()
                         plan = pdsim_solver.solve()
                         response['plan'] = plan
