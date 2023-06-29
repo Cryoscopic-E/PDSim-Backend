@@ -53,19 +53,24 @@ def server_main():
                 else:
                     try:
                         pdsim_reader: PDSimReader = PDSimReader(d_path, p_path)
-                        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, d_path, p_path, 'fast-downward')
+                        pdsim_solver: PDSimSolver = PDSimSolver(pdsim_reader.problem, d_path, p_path, 'planning-domains')
                         response = pdsim_reader.pdsim_representation()
                         plan = pdsim_solver.solve()
-                        response['plan'] = plan
-                        response['status'] = 'OK'
-                        try:
-                            j = json.dumps(response).encode('utf-8')
-                        except Exception as e:
-                            print(e)
-                        try:
-                            socket.send_string(j.decode('utf-8'))
-                        except Exception as e:
-                            print(e)
+
+                        if 'error' in plan:
+                            response['error'] = plan['error']
+                            socket.send_json(response)
+                        else:
+                            response['plan'] = plan
+                            response['status'] = 'OK'
+                            try:
+                                j = json.dumps(response).encode('utf-8')
+                            except Exception as e:
+                                print(e)
+                            try:
+                                socket.send_string(j.decode('utf-8'))
+                            except Exception as e:
+                                print(e)
                     except ParseBaseException as pbe:
                         pdsim_reader = None
                         pdsim_solver = None
