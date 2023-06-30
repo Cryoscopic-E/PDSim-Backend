@@ -1,4 +1,5 @@
 from unified_planning.shortcuts import *
+from unified_planning.environment import get_env
 from unified_planning.engines import PlanGenerationResultStatus
 from unified_planning.plans.plan import ActionInstance
 import requests
@@ -6,20 +7,20 @@ import sys
 
 
 class PlanningDomainsSolver:
-    def __init__(self, domain_file:str, problem_file:str) -> None:
-        get_environment().credits_stream = None
+    def __init__(self, domain_file: str, problem_file: str) -> None:
+        get_env().credits_stream = None
         self.data = {'domain': open(domain_file, 'r').read(),
-                    'problem': open(problem_file, 'r').read()}
+                     'problem': open(problem_file, 'r').read()}
 
     def solve(self):
-        resp = requests.post('http://solver.planning.domains/solve',verify=False, json=self.data).json()
+        resp = requests.post(
+            'http://solver.planning.domains/solve', verify=False, json=self.data).json()
         return resp['result']
-    
 
 
 class PDSimSolver:
-    def __init__(self, problem : Problem, domain_file:str, problem_file:str, solver:str='pyperplan') -> None:
-        self.cached_problem : Problem = problem
+    def __init__(self, problem: Problem, domain_file: str, problem_file: str, solver: str = 'pyperplan') -> None:
+        self.cached_problem: Problem = problem
         if solver == 'fast-downward':
             self.planner = OneshotPlanner(name='fast-downward')
         elif solver == 'planning-domains':
@@ -27,13 +28,12 @@ class PDSimSolver:
         else:
             self.planner = OneshotPlanner(name='pyperplan')
 
-
-    def action_info(self, action_instance : ActionInstance):
-        params = map(str,action_instance.actual_parameters)
+    def action_info(self, action_instance: ActionInstance):
+        params = map(str, action_instance.actual_parameters)
         return {'action_name': action_instance.action.name, 'parameters': list(params)}
 
-    def parse_planning_domains_action(self, action_name : str):
-        
+    def parse_planning_domains_action(self, action_name: str):
+
         action = action_name[1:-1].split(' ')
         return {'action_name': action[0], 'parameters': action[1:]}
 
@@ -46,7 +46,8 @@ class PDSimSolver:
             result = self.planner.solve()
             if result['parse_status'] == 'ok':
                 for action in result['plan']:
-                    action_list.append(self.parse_planning_domains_action(action['name']))
+                    action_list.append(
+                        self.parse_planning_domains_action(action['name']))
                 planner_output['actions'] = action_list
             else:
                 planner_output['error'] = result['error']
