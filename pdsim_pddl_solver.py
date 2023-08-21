@@ -1,5 +1,5 @@
 from unified_planning.shortcuts import *
-from unified_planning.environment import get_env
+from unified_planning.environment import get_environment
 from unified_planning.engines import PlanGenerationResultStatus
 from unified_planning.plans.plan import ActionInstance
 import requests
@@ -8,7 +8,6 @@ import sys
 
 class PlanningDomainsSolver:
     def __init__(self, domain_file: str, problem_file: str) -> None:
-        get_env().credits_stream = None
         self.data = {'domain': open(domain_file, 'r').read(),
                      'problem': open(problem_file, 'r').read()}
 
@@ -38,6 +37,7 @@ class PDSimSolver:
         return {'action_name': action[0], 'parameters': action[1:]}
 
     def solve(self):
+        get_environment().credits_stream = None
         print("Solving problem...")
         planner_output = {}
         action_list = []
