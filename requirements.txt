@@ -1,4 +1,4 @@
 pyzmq
 requests
---pre 
+protobuf
 unified-planning[fast-downward,pyperplan,tamer]

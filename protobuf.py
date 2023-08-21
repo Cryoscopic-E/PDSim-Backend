@@ -3,13 +3,15 @@ from unified_planning.grpc.proto_writer import ProtobufWriter
 from unified_planning.grpc.proto_reader import ProtobufReader
 from unified_planning.io.pddl_reader import PDDLReader
 
+
 def main():
     writer = ProtobufWriter()
     reader = ProtobufReader()
     # read the domain file
     pddl_reader = PDDLReader()
 
-    problem = pddl_reader.parse_problem('./pddl/blocks-domain.pddl', './pddl/blocks-instance-demo.pddl')
+    problem = pddl_reader.parse_problem(
+        './pddl/blocks-domain.pddl', './pddl/blocks-instance-demo.pddl')
 
     converted = writer.convert(problem)
 
