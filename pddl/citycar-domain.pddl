@@ -16,7 +16,7 @@
     (arrived ?c - car ?x - junction) ;; a car arrived at destination
     (road_connect ?r1 - road ?xy - junction ?xy2 - junction) ;; there is a road that connects 2 junctions
     (clear ?xy - junction ) ;; the junction is clear
-    (in_place ?x - road) ;; the road has been put in place
+    (in_place ?x - road);; the road has been put in place
     (at_garage ?g - garage ?xy - junction ) ;; position of the starting garage
 
   )
@@ -27,6 +27,7 @@
   :parameters (?xy_initial - junction ?xy_final - junction ?machine - car ?r1 - road)
   :precondition (and
 		(at_car_jun ?machine ?xy_initial)
+		(not (= ?xy_initial ?xy_final))
 		(road_connect ?r1 ?xy_initial ?xy_final)
 		(in_place ?r1)
 		)
@@ -44,6 +45,7 @@
   :precondition (and
 		(at_car_road ?machine ?r1)
 		(clear ?xy_final)
+		(not (= ?xy_initial ?xy_final))
 		(road_connect ?r1 ?xy_initial ?xy_final)
 		(in_place ?r1)
 		)
@@ -88,6 +90,7 @@
   :parameters (?xy_initial - junction ?xy_final - junction ?r1 - road)
   :precondition (and
 		(clear ?xy_final)
+		(not (= ?xy_initial ?xy_final))
 		(not (in_place ?r1))
 		(diagonal ?xy_initial ?xy_final)
 		)
@@ -103,6 +106,7 @@
   :parameters (?xy_initial - junction ?xy_final - junction ?r1 - road)
   :precondition (and
 		(clear ?xy_final)
+		(not (= ?xy_initial ?xy_final))
 		(same_line ?xy_initial ?xy_final)
 		(not (in_place ?r1))
 		)
@@ -118,6 +122,7 @@
   :parameters (?xy_initial - junction ?xy_final - junction ?r1 - road)
   :precondition (and
 		(road_connect ?r1 ?xy_initial ?xy_final)
+		(not (= ?xy_initial ?xy_final))
 		(in_place ?r1)
 		)
   :effect (and

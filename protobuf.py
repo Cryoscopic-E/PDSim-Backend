@@ -11,13 +11,21 @@ def main():
     pddl_reader = PDDLReader()
 
     problem = pddl_reader.parse_problem(
-        './pddl/blocks-domain.pddl', './pddl/blocks-instance-demo.pddl')
+        './pddl/crewplanning.pddl', './pddl/crewplanning-problem.pddl')
 
     converted = writer.convert(problem)
+    # `converted` need to be sent to unity
+    print(converted.actions)
 
-    back_problem = reader.convert(converted)
+    # send as bytes
+    converted = converted.SerializeToString()
+    print(type(converted))
 
-    print(back_problem)
+    # print(converted)
+
+    # back_problem = reader.convert(converted)
+
+    # print(back_problem)
 
 
 if __name__ == '__main__':
