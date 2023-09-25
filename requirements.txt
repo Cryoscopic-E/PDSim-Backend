@@ -1,4 +1,6 @@
-pyzmq
-requests
+pyzmq~=25.1.1
+requests~=2.31.0
 protobuf
-unified-planning[fast-downward,pyperplan,tamer]
+unified-planning[pyperplan,tamer]
+up-fast-downward==0.3.1
+pyparsing~=3.1.1
