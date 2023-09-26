@@ -1,3 +1,5 @@
+import json
+
 import zmq
 import signal
 import time
@@ -41,11 +43,14 @@ class PdSimUnityServer:
 
         while True:
             request = socket.recv_json()
-            if request['request'] == 'problem':
+            if request['request'] == 'ping':
+                socket.send_json(json.dumps({'status': 'OK'}))
+            elif request['request'] == 'problem':
                 converted_problem = self.convert_to_protobuf(self.problem)
                 if converted_problem is not None:
                     socket.send(converted_problem)
             elif request['request'] == 'plan':
+                print(self.plan_result)
                 converted_plan = self.convert_to_protobuf(self.plan_result)
                 if converted_plan is not None:
                     socket.send(converted_plan)
@@ -83,9 +88,17 @@ def select_planner(planners):
 
 def solve_problem(problem, planner_name):
     applicable_planners = get_all_applicable_engines(problem.kind)
+    if len(applicable_planners) == 0:
+        print(f"No planners applicable to problem {problem.kind}")
+        exit(1)
     if planner_name not in applicable_planners:
         print(f"Planner {planner_name} not applicable to problem {problem.kind}")
-        planner_name = select_planner(applicable_planners)
+        if len(applicable_planners) == 1:
+            planner_name = applicable_planners[0]
+            print(f"Using {applicable_planners[0]}")
+        else:
+            planner_name = select_planner(applicable_planners)
+            print(f"Using {planner_name}")
     planner = OneshotPlanner(name=planner_name)
     return planner.solve(problem)
 
@@ -93,7 +106,6 @@ def solve_problem(problem, planner_name):
 def launch_server(problem, result, host, port):
     server = PdSimUnityServer(problem, result, host, port)
     server.server_loop()
-
 
 def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='5556'):
     try:
@@ -103,6 +115,9 @@ def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='
         exit(1)
     try:
         result = solve_problem(problem_pddl, planner_name)
+        if result.plan is None:
+            print("No plan found")
+            exit(1)
     except Exception as exception:
         print(exception)
         exit(1)
@@ -112,6 +127,9 @@ def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='
 def pdsim_upf(problem_upf, planner_name, host='127.0.0.1', port='5556'):
     try:
         result = solve_problem(problem_upf, planner_name)
+        if result.plan is None:
+            print("No plan found")
+            exit(1)
     except Exception as exception:
         print(exception)
         exit(1)

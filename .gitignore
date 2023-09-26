@@ -152,4 +152,6 @@ fabric.properties
 
 #VScode
 .vscode/
-/pddl/aicourse/
+
+# examples
+/examples/pddl/aicourse/
