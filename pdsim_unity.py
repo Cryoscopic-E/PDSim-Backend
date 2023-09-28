@@ -107,10 +107,12 @@ def launch_server(problem, result, host, port):
     server = PdSimUnityServer(problem, result, host, port)
     server.server_loop()
 
+
 def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='5556'):
     try:
         problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
     except Exception as exception:
+        print("Error parsing problem")
         print(exception)
         exit(1)
     try:
@@ -119,6 +121,7 @@ def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='
             print("No plan found")
             exit(1)
     except Exception as exception:
+        print("Error solving problem")
         print(exception)
         exit(1)
     launch_server(problem_pddl, result, host, port)
