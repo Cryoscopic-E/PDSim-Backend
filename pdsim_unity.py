@@ -44,7 +44,7 @@ class PdSimUnityServer:
         while True:
             request = socket.recv_json()
             if request['request'] == 'ping':
-                socket.send_json(json.dumps({'status': 'OK'}))
+                socket.send_json({'status': 'OK'})
             elif request['request'] == 'problem':
                 converted_problem = self.convert_to_protobuf(self.problem)
                 if converted_problem is not None:
