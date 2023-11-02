@@ -34,13 +34,8 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
     
     `python -m pip install -r requirements.txt`
 
-## Usage [old]
 
-Run the server before starting a new simulation in Unity.
-
-    `python server_upf.py`
-
-## Usage [Protobuf]
+## Usage
 
  - Run in cli mode providing your domain and problem files.
 
