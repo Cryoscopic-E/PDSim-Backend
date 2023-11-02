@@ -7,13 +7,14 @@ import argparse
 
 from unified_planning.io.pddl_reader import PDDLReader
 from unified_planning.model import Problem
-from unified_planning.engines import PlanGenerationResult
-from unified_planning.shortcuts import OneshotPlanner, get_all_applicable_engines
+from unified_planning.engines import PlanGenerationResult, CompilationKind
+from unified_planning.shortcuts import OneshotPlanner, get_all_applicable_engines, Compiler
 from unified_planning.grpc.proto_writer import ProtobufWriter
 
 
 class PdSimUnityServer:
     def __init__(self, problem_model: Problem, plan_result: PlanGenerationResult, host, port):
+
         self.host = host
         self.port = port
         self.proto_writer = ProtobufWriter()
@@ -44,7 +45,7 @@ class PdSimUnityServer:
         while True:
             request = socket.recv_json()
             if request['request'] == 'ping':
-                socket.send_json(json.dumps({'status': 'OK'}))
+                socket.send_json({'status': 'OK'})
             elif request['request'] == 'problem':
                 converted_problem = self.convert_to_protobuf(self.problem)
                 if converted_problem is not None:
@@ -68,6 +69,20 @@ def usage():
                                 [--host <host_address>] 
                                 [--port <port>]
                                 ''')
+
+
+def compile_problem(problem):
+    # Remove quantifiers and conditional effects
+    with Compiler(
+            problem_kind=problem.kind,
+            compilation_kind=CompilationKind.QUANTIFIERS_REMOVING) as compiler:
+        compilation_result = compiler.compile(problem)
+    with Compiler(
+            problem_kind=problem.kind,
+            compilation_kind=CompilationKind.CONDITIONAL_EFFECTS_REMOVING) as compiler:
+        compilation_result = compiler.compile(compilation_result.problem)
+        print(compilation_result.problem)
+    return compilation_result.problem
 
 
 def select_planner(planners):
@@ -111,6 +126,7 @@ def launch_server(problem, result, host, port):
 def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='5556'):
     try:
         problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
+        problem_pddl = compile_problem(problem_pddl)
     except Exception as exception:
         print("Error parsing problem")
         print(exception)
