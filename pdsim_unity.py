@@ -5,6 +5,7 @@ import signal
 import time
 import argparse
 
+import unified_planning as up
 from unified_planning.io.pddl_reader import PDDLReader
 from unified_planning.model import Problem
 from unified_planning.engines import PlanGenerationResult, CompilationKind
@@ -22,10 +23,14 @@ class PdSimUnityServer:
         self.plan_result = plan_result
 
     def info(self):
-        print("--------------------")
-        print("--- PDSim Server ---")
-        print("--------------------")
-        print(f"Listening on {self.host}:{self.port}")
+        print("####################################")
+        print("#####       PDSim Server       #####")
+        print("####################################")
+        print(f"--- Listening on {self.host}:{self.port} ---")
+        print("####################################")
+        print()
+        print(f'Problem: {self.problem.name}')
+        print(self.plan_result)
 
     def convert_to_protobuf(self, model):
         try:
@@ -144,6 +149,7 @@ def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='
 
 
 def pdsim_upf(problem_upf, planner_name, host='127.0.0.1', port='5556'):
+    up.shortcuts.get_environment().credits_stream = None
     try:
         result = solve_problem(problem_upf, planner_name)
         if result.plan is None:
