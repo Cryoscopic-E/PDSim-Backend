@@ -28,9 +28,6 @@ class PdSimUnityServer:
         print("####################################")
         print(f"--- Listening on {self.host}:{self.port} ---")
         print("####################################")
-        print()
-        print(f'Problem: {self.problem.name}')
-        print(self.plan_result)
 
     def convert_to_protobuf(self, model):
         try:
@@ -54,9 +51,9 @@ class PdSimUnityServer:
             elif request['request'] == 'problem':
                 converted_problem = self.convert_to_protobuf(self.problem)
                 if converted_problem is not None:
+                    print(converted_problem)
                     socket.send(converted_problem)
             elif request['request'] == 'plan':
-                print(self.plan_result)
                 converted_plan = self.convert_to_protobuf(self.plan_result)
                 if converted_plan is not None:
                     socket.send(converted_plan)
@@ -86,7 +83,6 @@ def compile_problem(problem):
             problem_kind=problem.kind,
             compilation_kind=CompilationKind.CONDITIONAL_EFFECTS_REMOVING) as compiler:
         compilation_result = compiler.compile(compilation_result.problem)
-        print(compilation_result.problem)
     return compilation_result.problem
 
 
