@@ -1,5 +1,4 @@
 from pdsim_unity import pdsim_upf
-from unified_planning.model.types import BOOL
 from unified_planning.shortcuts import *
 
 
