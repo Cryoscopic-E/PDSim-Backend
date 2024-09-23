@@ -1,4 +1,3 @@
-from pdsim_unity import pdsim_upf
 from unified_planning.model.types import BOOL
 from unified_planning.shortcuts import *
 
@@ -76,6 +75,8 @@ def blocks_upf_problem():
 
     return problem
 
+
+from pdsim_unity import pdsim_upf
 
 if __name__ == '__main__':
     upf_problem = blocks_upf_problem()
