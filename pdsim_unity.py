@@ -126,7 +126,9 @@ def launch_server(problem, result, host, port):
 
 def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='5556'):
     try:
+        print("Parsing domain")
         problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
+        print("Parsing Complete")
         problem_pddl = compile_problem(problem_pddl)
     except Exception as exception:
         print("Error parsing problem")
