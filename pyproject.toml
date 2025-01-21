@@ -1,0 +1,27 @@
+[project]
+name = "pdsim_backend"
+version = "0.1"
+authors = [
+  { name="Emanuele De Pellegrin", email="ed50@hw.ac.uk" },
+]
+description = "Using Unified Planning Library to parse PDDL and generate plans for PDSim."
+dependencies= [
+    'pyzmq~=25.1.1',
+    'requests~=2.31.0',
+    'protobuf',
+    'unified-planning==1.1.0',
+    'up-fast-downward',
+    'up-tamer',
+    'up-pyperplan',
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = { file = "./LICENSE" }
+
+[project.urls]
+Homepage = "https://github.com/Cryoscopic-E/PDSim-Backend"
+Issues = "https://github.com/Cryoscopic-E/PDSim-Backend/issues"
