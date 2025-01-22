@@ -3,6 +3,7 @@ name = "pdsim_backend"
 version = "0.1"
 authors = [
   { name="Emanuele De Pellegrin", email="ed50@hw.ac.uk" },
+  { name="Andy Edmondson", email="ae2016@hw.ac.uk" },
 ]
 description = "Using Unified Planning Library to parse PDDL and generate plans for PDSim."
 dependencies= [
