@@ -11,7 +11,7 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
 - [Pyperplan](https://github.com/aiplan4eu/up-pyperplan)
 
 ## Install
-- Get the project
+- Get the project to have the script and examples available
 
     `git clone https://github.com/Cryoscopic-E/PDSim-Backend.git`
 
@@ -30,14 +30,27 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
     - Windows (CMD):
     `.\venv\Scripts\activate.bat` 
     
-- Install requirements
+- Install package and requirements for scripting
     
-    `python -m pip install -r requirements.txt`
+    `pip install pdsim_backend`
+
+This will install the PDSim-Backend python package along with dependencies. It can now be used from python or as a cli script.
 
 
 ## Usage
 
- - Run in cli mode providing your domain and problem files.
+### Python Mode
+
+```python
+from pdsim_backend import run_backend
+
+run_backend(domain='./examples/pddl/blocks/domain.pddl', problem='./examples/pddl/blocks/problem.pddl')
+```
+
+
+### CLI Mode 
+
+ - Provide your domain and problem files.
 
 `python pdsim_unity.py --domain <domain_path> --problem <problem_path>`
 
