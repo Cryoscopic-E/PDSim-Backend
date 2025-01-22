@@ -32,7 +32,7 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
     
 - Install package and requirements for scripting
     
-    `pip install pdsim_backend`
+    `pip install pdsim-backend`
 
 This will install the PDSim-Backend python package along with dependencies. It can now be used from python or as a cli script.
 
