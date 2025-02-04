@@ -4,38 +4,32 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
 
 
 
-### Availbale planners:
-    
-- [FastDownward](https://github.com/aibasel/downward)
-- [Tamer](https://github.com/aiplan4eu/up-tamer)
-- [Pyperplan](https://github.com/aiplan4eu/up-pyperplan)
-
 ## Install
-- Get the project to have the script and examples available
 
-    `git clone https://github.com/Cryoscopic-E/PDSim-Backend.git`
+This project is now hosted on [pypi](https://pypi.org/project/pdsim-backend/)
 
-- Move to project folder
+### Use Conda (preferred)
 
-    `cd PDSim-Backend`
+##### Create a new venv
+`conda create -n pdsim python=3.11`
 
-- Activate environment (optional)
+##### Activate
+`conda activate pdsim`
+  
+##### Install PDSim-Backend
+`pip install pdsim-backend`
 
-    `python -m venv venv`
-    
-    - Linux:
-    `source myvenv/bin/activate`
-    - Windows (Powereshell):
-    `.\venv\Scripts\activate.ps1`
-    - Windows (CMD):
-    `.\venv\Scripts\activate.bat` 
-    
-- Install package and requirements for scripting
-    
-    `pip install pdsim-backend`
+### Use Venv
+  
+##### Create a new venv
+`python -m venv <directory>`
 
-This will install the PDSim-Backend python package along with dependencies. It can now be used from python or as a cli script.
-
+##### Activate
+- Windows(Powershell): `<directory>\Scripts\activate.ps1`
+- Linux/macOS: `source <directory>/bin/activate`
+  
+##### Install PDSim-Backend
+`pip install pdsim-backend` 
 
 ## Usage
 
@@ -68,3 +62,13 @@ pdsim_upf(up_problem, planner_name)
 ````
 
 This will create a server to communicate with unity and serve the protobuf representation of the problem and the generated plan.
+
+PDSim will try to find the planner that suits best the planning problem provided and let you choose which one to run.
+
+#### Some Availbale planners:
+    
+- [FastDownward](https://github.com/aibasel/downward)
+- [Tamer](https://github.com/aiplan4eu/up-tamer)
+- [Pyperplan](https://github.com/aiplan4eu/up-pyperplan)
+FUll list [here](https://unified-planning.readthedocs.io/en/latest/engines/01_available_engines.html)
+
