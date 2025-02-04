@@ -1,5 +1,5 @@
 [project]
-name = "pdsim_backend"
+name = "pdsim-backend"
 version = "1.0.1"
 authors = [
   { name="Emanuele De Pellegrin", email="ed50@hw.ac.uk" },
