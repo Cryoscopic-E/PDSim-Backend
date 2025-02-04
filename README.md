@@ -3,7 +3,6 @@
 Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) to parse PDDL and generate plans for PDSim
 
 
-
 ## Install
 
 This project is now hosted on [pypi](https://pypi.org/project/pdsim-backend/)
