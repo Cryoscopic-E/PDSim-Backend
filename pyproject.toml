@@ -1,6 +1,6 @@
 [project]
 name = "pdsim-backend"
-version = "1.0.1"
+version = "1.1.0"
 authors = [
   { name="Emanuele De Pellegrin", email="ed50@hw.ac.uk" },
   { name="Andy Edmondson", email="ae2016@hw.ac.uk" },
@@ -10,10 +10,11 @@ dependencies= [
     'pyzmq~=25.1.1',
     'requests~=2.31.0',
     'protobuf',
-    'unified-planning==1.1.0',
+    'unified-planning==1.2.0',
     'up-fast-downward',
     'up-tamer',
     'up-pyperplan',
+    'up-enhsp',
 ]
 readme = "README.md"
 requires-python = ">=3.10"

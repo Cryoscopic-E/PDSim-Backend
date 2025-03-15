@@ -124,7 +124,7 @@ def launch_server(problem, result, host, port):
     server.server_loop()
 
 
-def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='5556'):
+def pdsim_pddl_doplan(domain_path, problem_path, planner_name, host='127.0.0.1', port='5556'):
     try:
         print("Parsing domain")
         problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
@@ -145,6 +145,22 @@ def pdsim_pddl(domain_path, problem_path, planner_name, host='127.0.0.1', port='
         exit(1)
     launch_server(problem_pddl, result, host, port)
 
+def pdsim_pddl_userplan(domain_path, problem_path, plan_path, host='127.0.0.1', port='5556'):
+    try:
+        print("Parsing domain")
+        problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
+        print("Parsing Complete")
+        problem_pddl = compile_problem(problem_pddl)
+        print("Compiling Complete")
+        print("Parsing plan")
+        plan = PDDLReader().parse_plan(problem_pddl, plan_path)
+        print("Parsing Plan Complete")
+    except Exception as exception:
+        print("Error loading plan")
+        print(exception)
+        exit(1)
+    launch_server(problem_pddl, plan, host, port)
+
 
 def pdsim_upf(problem_upf, planner_name, host='127.0.0.1', port='5556'):
     up.shortcuts.get_environment().credits_stream = None
@@ -159,17 +175,22 @@ def pdsim_upf(problem_upf, planner_name, host='127.0.0.1', port='5556'):
     launch_server(problem_upf, result, host, port)
 
 
-def run_backend(*, domain = '', problem = '', planner = 'fast-downward', host = '127.0.0.1', port = '5556'):
+def run_backend(*, domain = '', problem = '', plan='', planner = 'fast-downward', host = '127.0.0.1', port = '5556'):
     """Run the PDSim Backend server, calculating environment and plans for the specified PDDL domain and problem."""
     if domain is None or problem is None:
         print("PPDL Domain and problem files are required.")
-    pdsim_pddl(domain, problem, planner, host, port)
+        return
+    if plan is not None:
+        pdsim_pddl_doplan(domain, problem, planner, host, port)
+    else:
+        pdsim_pddl_userplan(domain, problem, plan, host, port)
     
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PDSim server')
     parser.add_argument('--domain', type=str, help='Domain file')
     parser.add_argument('--problem', type=str, help='Problem file')
+    parser.add_argument('--plan', type=str, help='Plan file')
     parser.add_argument('--planner', type=str, default='fast-downward', help='Planner name')
     parser.add_argument('--host', type=str, default='127.0.0.1', help='Host address')
     parser.add_argument('--port', type=str, default='5556', help='Port')
@@ -181,5 +202,9 @@ if __name__ == '__main__':
         usage()
         exit(1)
     else:
-        # run server
-        pdsim_pddl(args.domain, args.problem, args.planner, args.host, args.port)
+        if args.plan is not None:
+            # run server with plan
+            pdsim_pddl_doplan(args.domain, args.problem, args.planner, args.host, args.port)
+        else:
+            # run server without plan
+            pdsim_pddl_userplan(args.domain, args.problem, args.planner, args.host, args.port)
