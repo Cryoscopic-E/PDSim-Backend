@@ -204,7 +204,7 @@ if __name__ == '__main__':
     else:
         if args.plan is not None:
             # run server with plan
-            pdsim_pddl_doplan(args.domain, args.problem, args.planner, args.host, args.port)
+            pdsim_pddl_userplan(args.domain, args.problem, args.planner, args.host, args.port)
         else:
             # run server without plan
-            pdsim_pddl_userplan(args.domain, args.problem, args.planner, args.host, args.port)
+            pdsim_pddl_doplan(args.domain, args.problem, args.planner, args.host, args.port)
