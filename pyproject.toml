@@ -2,13 +2,12 @@
 name = "pdsim-backend"
 version = "1.1.0"
 authors = [
-  { name="Emanuele De Pellegrin", email="ed50@hw.ac.uk" },
+  { name="Emanuele De Pellegrin", email="edepell@ed.ac.uk" },
   { name="Andy Edmondson", email="ae2016@hw.ac.uk" },
 ]
 description = "Using Unified Planning Library to parse PDDL and generate plans for PDSim."
 dependencies= [
     'pyzmq~=25.1.1',
-    'requests~=2.31.0',
     'protobuf',
     'unified-planning==1.2.0',
     'up-fast-downward',
