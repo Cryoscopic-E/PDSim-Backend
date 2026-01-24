@@ -1,0 +1,10 @@
+services:
+  pdsim-server:
+    build: .
+    image: pdsim-server:latest
+    volumes:
+      - ./examples:/data
+    ports:
+      - "5556:5556"
+    stdin_open: true 
+    tty: true        

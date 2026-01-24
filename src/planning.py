@@ -1,3 +1,5 @@
+import threading
+import logging
 import unified_planning as up
 from unified_planning.io.pddl_reader import PDDLReader
 from unified_planning.model import Problem
@@ -71,19 +73,22 @@ def solve_problem(problem: Problem, planner_name: str, planner_selection_callbac
 
 def launch_server(problem: Problem, result: Union[PlanGenerationResult, Plan], host: str, port: str, 
                   planner_name: Optional[str] = None, 
-                  solve_callback: Optional[Callable[[Problem, str], PlanGenerationResult]] = None):
+                  solve_callback: Optional[Callable[[Problem, str], PlanGenerationResult]] = None,
+                  stop_event: Optional[threading.Event] = None,
+                  logger: Optional[logging.Logger] = None):
     """
     Starts the PDSim Unity Server.
     """
     # Wrap the unified_planning Problem in our PdSimProblem wrapper
     pdsim_problem = PdSimProblem(problem)
-    server = PdSimUnityServer(pdsim_problem, result, host, port, planner_name=planner_name, solve_callback=solve_callback)
+    server = PdSimUnityServer(pdsim_problem, result, host, port, 
+                              planner_name=planner_name, 
+                              solve_callback=solve_callback,
+                              stop_event=stop_event,
+                              logger=logger)
     server.server_loop()
 
-def pdsim_pddl_doplan(domain_path: str, problem_path: str, planner_name: str, host: str = '127.0.0.1', port: str = '5556', planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
-    """
-    Parses PDDL, solves the problem, and launches the server.
-    """
+def prepare_pddl_doplan(domain_path: str, problem_path: str, planner_name: str, planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
     try:
         print(f"Parsing domain: {domain_path} and problem: {problem_path}")
         problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
@@ -101,13 +106,17 @@ def pdsim_pddl_doplan(domain_path: str, problem_path: str, planner_name: str, ho
 
     def replan_callback(prob, name):
          return solve_problem(prob, name, planner_selection_callback)
+         
+    return problem_pddl, result, replan_callback
 
+def pdsim_pddl_doplan(domain_path: str, problem_path: str, planner_name: str, host: str = '127.0.0.1', port: str = '5556', planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
+    """
+    Parses PDDL, solves the problem, and launches the server.
+    """
+    problem_pddl, result, replan_callback = prepare_pddl_doplan(domain_path, problem_path, planner_name, planner_selection_callback)
     launch_server(problem_pddl, result, host, port, planner_name=planner_name, solve_callback=replan_callback)
 
-def pdsim_pddl_userplan(domain_path: str, problem_path: str, plan_path: str, host: str = '127.0.0.1', port: str = '5556'):
-    """
-    Parses PDDL and a pre-existing plan, then launches the server.
-    """
+def prepare_pddl_userplan(domain_path: str, problem_path: str, plan_path: str):
     try:
         print("Parsing domain and problem...")
         problem_pddl = PDDLReader().parse_problem(domain_path, problem_path)
@@ -120,14 +129,18 @@ def pdsim_pddl_userplan(domain_path: str, problem_path: str, plan_path: str, hos
         print("Parsing Plan Complete")
     except Exception as exception:
         raise ParsingError(f"Error loading plan or problem: {exception}") from exception
-        
+    
+    return problem_pddl, plan
+
+def pdsim_pddl_userplan(domain_path: str, problem_path: str, plan_path: str, host: str = '127.0.0.1', port: str = '5556'):
+    """
+    Parses PDDL and a pre-existing plan, then launches the server.
+    """
+    problem_pddl, plan = prepare_pddl_userplan(domain_path, problem_path, plan_path)
     # User plan mode: we might not have a preferred planner for replanning.
     launch_server(problem_pddl, plan, host, port)
 
-def pdsim_upf(problem_upf: Problem, planner_name: str, host: str = '127.0.0.1', port: str = '5556', planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
-    """
-    Solves a UPF problem object directly and launches the server.
-    """
+def prepare_upf(problem_upf: Problem, planner_name: str, planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
     up.shortcuts.get_environment().credits_stream = None
     try:
         result = solve_problem(problem_upf, planner_name, planner_selection_callback)
@@ -138,5 +151,12 @@ def pdsim_upf(problem_upf: Problem, planner_name: str, host: str = '127.0.0.1', 
 
     def replan_callback(prob, name):
          return solve_problem(prob, name, planner_selection_callback)
+    
+    return problem_upf, result, replan_callback
 
+def pdsim_upf(problem_upf: Problem, planner_name: str, host: str = '127.0.0.1', port: str = '5556', planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
+    """
+    Solves a UPF problem object directly and launches the server.
+    """
+    problem_upf, result, replan_callback = prepare_upf(problem_upf, planner_name, planner_selection_callback)
     launch_server(problem_upf, result, host, port, planner_name=planner_name, solve_callback=replan_callback)
