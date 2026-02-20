@@ -26,8 +26,7 @@ except ImportError:
     sys.exit(1)
 
 from planning import pdsim_pddl_doplan, pdsim_pddl_userplan, prepare_pddl_doplan, prepare_upf
-import planning # Needed to patch if necessary
-import pdsim_unity # Needed to patch
+from planning import pdsim_upf
 from exceptions import PdSimError
 from server_manager import ServerManager
 from unified_planning.plans import Plan, SequentialPlan, TimeTriggeredPlan
@@ -347,8 +346,10 @@ def interactive_mode(host: str, port: str):
         ).ask()
 
         if action == "Load PDDL Problem":
-            search_paths = ['/data', 'examples', '.']
-            pddl_files = get_files_recursive(search_paths, ".pddl")
+            # Search /data first. If populated, use it to avoid duplicates with built-in examples
+            pddl_files = get_files_recursive(['/data'], ".pddl")
+            if not pddl_files:
+                pddl_files = get_files_recursive(['examples', '.'], ".pddl")
             
             domain_file = select_file(pddl_files, "Select Domain File:")
             if not domain_file: continue
@@ -389,8 +390,11 @@ def interactive_mode(host: str, port: str):
                 console.print("[yellow]Stopping active server to free port...[/yellow]")
                 manager.stop_server()
                 
-            search_paths = ['/data', 'examples', '.']
-            py_files = get_files_recursive(search_paths, ".py")
+            # Search /data first. If populated, use it to avoid duplicates
+            py_files = get_files_recursive(['/data'], ".py")
+            if not py_files:
+                py_files = get_files_recursive(['examples', '.'], ".py")
+
             # Filter to exclude source code
             py_files = [f for f in py_files if 'src/' not in f and 'pdsim-server/' not in f]
             
@@ -404,11 +408,11 @@ def interactive_mode(host: str, port: str):
                 
                 # Save original state
                 original_sys_path = sys.path[:]
-                original_pdsim_upf = pdsim_unity.pdsim_upf
+                original_pdsim_upf = pdsim_upf
                 
                 # Patch
                 sys.path.insert(0, script_dir)
-                pdsim_unity.pdsim_upf = create_upf_interceptor(manager, script_name)
+                pdsim_upf = create_upf_interceptor(manager, script_name)
                 
                 try:
                     # Execute script in this process

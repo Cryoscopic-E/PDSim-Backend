@@ -6,25 +6,29 @@ Using [Unified Planning Library](https://github.com/aiplan4eu/unified-planning) 
 
 ### Build
 
-`docker build -t pdsim-server .`
+`make build`
+
+**On Windows**: `docker compose build`
 
 ### Run
 
-- To run the server, you need to mount a volume containing your PDDL files and specify the domain and problem files.
+- To run the server in interactive mode:
 
-`docker run -v $(pwd)/examples:/data -p 5556:5556 pdsim-server --domain /data/pddl/blocks/domain.pddl --problem /data/pddl/blocks/problem.pddl`
+`make up`
 
-- Run in CLI interactive mode.
+**On Windows**: `docker compose run --rm --service-ports pdsim-server`
 
-`docker run --rm -it -p 5556:5556 -v $(pwd)/examples:/data pdsim-server`
+- To stop and remove containers:
 
-### Docker Compose
+`make down`
 
-You can also use Docker Compose to run the server.
+**On Windows**: `docker compose down`
 
-`docker compose up`
+### Advanced Usage
 
-This will start the server using the example blocks world domain and problem. You can modify `docker-compose.yml` to point to your own files.
+You can also run the server with specific domain and problem files using `docker compose`:
+
+`docker compose run --rm --service-ports pdsim-server --domain /data/pddl/blocks/domain.pddl --problem /data/pddl/blocks/problem.pddl`
 
 ## Install
 

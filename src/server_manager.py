@@ -8,8 +8,6 @@ from unified_planning.model import Problem
 from unified_planning.engines import PlanGenerationResult
 
 from planning import launch_server
-from server import PdSimUnityServer
-from pdsim_problem import PdSimProblem
 
 class ServerManager:
     def __init__(self, host: str = '0.0.0.0', port: str = '5556'):
