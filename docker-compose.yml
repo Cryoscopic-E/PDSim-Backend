@@ -3,8 +3,9 @@ services:
     build: .
     image: pdsim-server:latest
     volumes:
-      - ./examples:/data
+      - ./data:/data
     ports:
       - "5556:5556"
+    network_mode: host
     stdin_open: true 
     tty: true        

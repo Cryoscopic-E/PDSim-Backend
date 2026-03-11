@@ -1,6 +1,7 @@
 from typing import Any, List, Optional
 from unified_planning.model import Problem, Object, FNode
 
+
 class PdSimProblem:
     """
     Wrapper around unified_planning.model.Problem to handle dynamic modifications

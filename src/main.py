@@ -1,23 +1,17 @@
 import argparse
 import sys
 import os
-import subprocess
 import time
-import threading
 import runpy
-import importlib
-from typing import List, Optional
+from typing import List, Optional, Union, Callable
 
-# Third-party libraries
+
 try:
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
     from rich.align import Align
-    from rich.layout import Layout
-    from rich.live import Live
     from rich.text import Text
-    from rich.style import Style
     from rich.tree import Tree
     import questionary
     from prompt_toolkit.key_binding import KeyBindings
@@ -25,8 +19,7 @@ except ImportError:
     print("Error: 'rich' and 'questionary' are required. Please install them.")
     sys.exit(1)
 
-from planning import pdsim_pddl_doplan, pdsim_pddl_userplan, prepare_pddl_doplan, prepare_upf
-from planning import pdsim_upf
+from planning import pdsim_pddl_doplan, pdsim_pddl_userplan, prepare_pddl_doplan, prepare_pddl_userplan, prepare_upf
 from exceptions import PdSimError
 from server_manager import ServerManager
 from unified_planning.plans import Plan, SequentialPlan, TimeTriggeredPlan
@@ -35,12 +28,30 @@ from unified_planning.model import Problem
 
 console = Console()
 
+# Escape exit the cli.
 def get_keybindings():
     kb = KeyBindings()
+    
     @kb.add("escape")
     def _(event):
         event.app.exit(result=None)
+    
     return kb
+
+def cli_planner_selector(planners: List[str]) -> str:
+    """
+    Callback for selecting a planner via Questionary.
+    """
+    choice = questionary.select(
+        "Select planner:",
+        choices=planners,
+        style=questionary.Style([('answer', 'fg:cyan bold')])
+    ).ask()
+    
+    if choice is None:
+        # Fallback default if cancelled (though select usually forces choice)
+        return planners[0]
+    return choice
 
 def create_upf_interceptor(manager: ServerManager, script_name: str):
     """
@@ -78,62 +89,124 @@ def create_upf_interceptor(manager: ServerManager, script_name: str):
 
     return interceptor
 
-def cli_planner_selector(planners: List[str]) -> str:
-    """
-    Callback for selecting a planner via Questionary.
-    """
-    choice = questionary.select(
-        "Select planner:",
-        choices=planners,
-        style=questionary.Style([('answer', 'fg:cyan bold')])
-    ).ask()
+def browse_files(base_paths: List[str], extensions: Union[str, List[str]], prompt: str, initial_dir: Optional[str] = None, header_func: Optional[Callable] = None) -> Optional[str]:
+    if isinstance(extensions, str):
+        extensions = [extensions]
     
-    if choice is None:
-        # Fallback default if cancelled (though select usually forces choice)
-        return planners[0]
-    return choice
-
-def get_files_recursive(search_paths: List[str], extension: str) -> List[str]:
-    matches = []
-    seen = set()
-    for path in search_paths:
-        if os.path.exists(path):
-            for root, _, filenames in os.walk(path):
-                for filename in filenames:
-                    if filename.endswith(extension):
-                        full_path = os.path.join(root, filename)
-                        abs_path = os.path.abspath(full_path)
-                        if abs_path not in seen:
-                            matches.append(full_path)
-                            seen.add(abs_path)
-    return sorted(matches)
-
-def select_file(files: List[str], prompt: str, instruction: str = "") -> str:
-    if not files:
-        console.print(f"[bold red]No files found for {prompt}.[/bold red]")
+    # Filter base paths to only existing ones
+    valid_bases = [os.path.abspath(b) for b in base_paths if os.path.exists(b)]
+    if not valid_bases:
+        console.print(f"[bold red]None of the search paths exist: {base_paths}[/bold red]")
         return None
-    
-    choices = files + [questionary.Separator(), "Cancel"]
-    
-    base_instruction = "Use arrow keys to navigate, Enter to select"
-    full_instruction = f"{instruction} | {base_instruction}" if instruction else base_instruction
 
-    choice = questionary.select(
-        prompt,
-        choices=choices,
-        instruction=full_instruction,
-        use_indicator=True,
-        pointer="»",
-        style=questionary.Style([
-            ('answer', 'fg:cyan bold'), 
-            ('pointer', 'fg:cyan bold'),
-            ('instruction', 'fg:gray italic')
-        ])
-    ).ask()
+    current_dir = initial_dir
     
-    if choice == "Cancel" or choice is None:
-        return None
-    return choice
+    # Ensure initial_dir is within one of the valid bases
+    if current_dir:
+        current_dir = os.path.abspath(current_dir)
+        if not any(current_dir.startswith(base) for base in valid_bases):
+            current_dir = None
+
+    # If no valid initial_dir, pick a base
+    if not current_dir:
+        if len(valid_bases) == 1:
+            current_dir = valid_bases[0]
+        else:
+            if header_func:
+                console.clear()
+                header_func()
+            choices = [questionary.Choice(title=f"📁 {b}", value=b) for b in valid_bases]
+            choices.append(questionary.Separator())
+            choices.append(questionary.Choice(title="❌ Cancel", value="Cancel"))
+            
+            choice = questionary.select(
+                "Select starting directory:",
+                choices=choices,
+                style=questionary.Style([('answer', 'fg:cyan bold')])
+            ).ask()
+            
+            if choice == "Cancel" or choice is None:
+                return None
+            current_dir = choice
+
+    while True:
+        if header_func:
+            console.clear()
+            header_func()
+            
+        try:
+            items = os.listdir(current_dir)
+        except Exception as e:
+            console.print(f"[bold red]Error accessing {current_dir}: {e}[/bold red]")
+            # Fallback to nearest base
+            current_dir = next((b for b in valid_bases if current_dir.startswith(b)), valid_bases[0])
+            time.sleep(1)
+            continue
+
+        dirs = []
+        files = []
+        for item in items:
+            if item.startswith('.'): continue
+            full_path = os.path.join(current_dir, item)
+            if os.path.isdir(full_path):
+                dirs.append(item)
+            elif any(item.endswith(ext) for ext in extensions):
+                files.append(item)
+        
+        dirs.sort()
+        files.sort()
+        
+        choices = []
+        # Only allow going up if we are not already at a base path
+        is_at_base = any(os.path.samefile(current_dir, b) for b in valid_bases)
+        if not is_at_base:
+            choices.append(questionary.Choice(title="⬆️  .. [Go Up]", value="UP"))
+        elif len(valid_bases) > 1:
+            choices.append(questionary.Choice(title="🔄 Switch Root Directory", value="SWITCH"))
+        
+        for d in dirs:
+            choices.append(questionary.Choice(title=f"📁 {d}", value=os.path.join(current_dir, d)))
+        
+        for f in files:
+            choices.append(questionary.Choice(title=f"📄 {f}", value=os.path.join(current_dir, f)))
+            
+        choices.append(questionary.Separator())
+        choices.append(questionary.Choice(title="❌ Cancel", value="Cancel"))
+
+        selected = questionary.select(
+            prompt,
+            choices=choices,
+            instruction=f"Current Path: {current_dir}",
+            qmark="",
+            style=questionary.Style([
+                ('answer', 'fg:cyan bold'),
+                ('pointer', 'fg:cyan bold'),
+                ('separator', 'fg:yellow'),
+                ('selected', 'fg:cyan bold'),
+                ('instruction', 'fg:cyan italic'),
+            ])
+        ).ask()
+        
+        if selected == "Cancel" or selected is None:
+            return None
+        
+        if selected == "UP":
+            current_dir = os.path.dirname(current_dir)
+        elif selected == "SWITCH":
+            # Restart base selection
+            if header_func:
+                console.clear()
+                header_func()
+            choices = [questionary.Choice(title=f"📁 {b}", value=b) for b in valid_bases]
+            choices.append(questionary.Separator())
+            choices.append(questionary.Choice(title="❌ Cancel", value="Cancel"))
+            choice = questionary.select("Select starting directory:", choices=choices).ask()
+            if choice == "Cancel" or choice is None: return None
+            current_dir = choice
+        elif os.path.isdir(selected):
+            current_dir = selected
+        else:
+            return selected
 
 def render_dashboard(manager: ServerManager) -> Panel:
     status = manager.get_status()
@@ -317,11 +390,15 @@ def view_logs(manager: ServerManager):
 
 def interactive_mode(host: str, port: str):
     manager = ServerManager(host, port)
+    last_dir = None
     
-    while True:
-        console.clear()
+    def dashboard_header():
         console.print(render_dashboard(manager))
         console.print("") # Spacing
+
+    while True:
+        console.clear()
+        dashboard_header()
 
         action = questionary.select(
             "What would you like to do?",
@@ -346,39 +423,58 @@ def interactive_mode(host: str, port: str):
         ).ask()
 
         if action == "Load PDDL Problem":
-            # Search /data first. If populated, use it to avoid duplicates with built-in examples
-            pddl_files = get_files_recursive(['/data'], ".pddl")
-            if not pddl_files:
-                pddl_files = get_files_recursive(['examples', '.'], ".pddl")
+            search_paths = ['/data', 'examples']
             
-            domain_file = select_file(pddl_files, "Select Domain File:")
+            domain_file = browse_files(search_paths, ".pddl", "Select Domain File:", initial_dir=last_dir, header_func=dashboard_header)
             if not domain_file: continue
+            last_dir = os.path.dirname(domain_file)
             
             # Visual cue: Show the selected domain while picking the problem
-            problem_file = select_file(
-                pddl_files, 
+            problem_file = browse_files(
+                search_paths, 
+                ".pddl", 
                 "Select Problem File:", 
-                instruction=f"Selected Domain: [bold cyan]{os.path.basename(domain_file)}[/bold cyan]"
+                initial_dir=last_dir,
+                header_func=dashboard_header
             )
             if not problem_file: continue
-            
+            last_dir = os.path.dirname(problem_file)
+
+            # Optional Plan
+            provide_plan = questionary.confirm("Would you like to provide an existing plan file?", default=False).ask()
+            plan_file = None
+            if provide_plan:
+                plan_file = browse_files(search_paths, [".plan", ".txt", ".soln", ".val"], "Select Plan File:", initial_dir=last_dir, header_func=dashboard_header)
+                if plan_file: last_dir = os.path.dirname(plan_file)
+
             with console.status("[bold green]Parsing and Planning...[/bold green]", spinner="dots"):
                 try:
-                    # Use prepare_pddl_doplan to get objects without blocking
-                    problem, result, cb = prepare_pddl_doplan(
-                        domain_file, problem_file, 
-                        planner_name='fast-downward', # Default, overridden by callback if needed
-                        planner_selection_callback=cli_planner_selector
-                    )
-                    
-                    manager.start_server(
-                        problem=problem, 
-                        result=result, 
-                        planner_name='fast-downward',
-                        solve_callback=cb,
-                        domain_name=os.path.basename(domain_file),
-                        problem_name=os.path.basename(problem_file)
-                    )
+                    if plan_file:
+                        # Use prepare_pddl_userplan for pre-existing plans
+                        problem, result = prepare_pddl_userplan(domain_file, problem_file, plan_file)
+                        manager.start_server(
+                            problem=problem,
+                            result=result,
+                            planner_name="User Provided Plan",
+                            domain_name=os.path.basename(domain_file),
+                            problem_name=os.path.basename(problem_file)
+                        )
+                    else:
+                        # Use prepare_pddl_doplan to get objects without blocking
+                        problem, result, cb = prepare_pddl_doplan(
+                            domain_file, problem_file, 
+                            planner_name='fast-downward', # Default, overridden by callback if needed
+                            planner_selection_callback=cli_planner_selector
+                        )
+                        
+                        manager.start_server(
+                            problem=problem, 
+                            result=result, 
+                            planner_name='fast-downward',
+                            solve_callback=cb,
+                            domain_name=os.path.basename(domain_file),
+                            problem_name=os.path.basename(problem_file)
+                        )
                     console.print("[bold green]Server Started Successfully![/bold green]")
                     time.sleep(1) # Let user see success
                 except Exception as e:
@@ -390,16 +486,11 @@ def interactive_mode(host: str, port: str):
                 console.print("[yellow]Stopping active server to free port...[/yellow]")
                 manager.stop_server()
                 
-            # Search /data first. If populated, use it to avoid duplicates
-            py_files = get_files_recursive(['/data'], ".py")
-            if not py_files:
-                py_files = get_files_recursive(['examples', '.'], ".py")
-
-            # Filter to exclude source code
-            py_files = [f for f in py_files if 'src/' not in f and 'pdsim-server/' not in f]
+            search_paths = ['/data', 'examples']
+            script_file = browse_files(search_paths, ".py", "Select Python Script:", initial_dir=last_dir, header_func=dashboard_header)
             
-            script_file = select_file(py_files, "Select Python Script:")
             if script_file:
+                last_dir = os.path.dirname(script_file)
                 console.print(f"[bold]Executing {script_file}...[/bold]")
                 
                 # Prepare environment for execution
@@ -408,15 +499,15 @@ def interactive_mode(host: str, port: str):
                 
                 # Save original state
                 original_sys_path = sys.path[:]
-                original_pdsim_upf = pdsim_upf
+                
+                import planning
+                original_prepare_upf = planning.prepare_upf
                 
                 # Patch
                 sys.path.insert(0, script_dir)
-                pdsim_upf = create_upf_interceptor(manager, script_name)
                 
                 try:
                     # Execute script in this process
-                    # This allows the interceptor to be called and set up the server manager
                     runpy.run_path(script_file, run_name="__main__")
                 except KeyboardInterrupt:
                     console.print("\n[yellow]Script interrupted.[/yellow]")
@@ -425,7 +516,6 @@ def interactive_mode(host: str, port: str):
                 finally:
                     # Restore state
                     sys.path = original_sys_path
-                    pdsim_unity.pdsim_upf = original_pdsim_upf
                 
                 questionary.press_any_key_to_continue().ask()
 
