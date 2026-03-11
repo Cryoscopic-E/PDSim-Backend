@@ -1,8 +1,9 @@
-pyzmq~=25.1.1
-requests~=2.31.0
 protobuf
+pyzmq~=25.1.1
 unified-planning==1.2.0
 up-fast-downward
 up-tamer
 up-pyperplan
-up-enhsp
+up-enhsp==0.0.25
+rich
+questionary

@@ -1,0 +1,23 @@
+;;!domain: citycar
+;;!problem: citycar-3-3-2
+
+0.00000: (build_straight_oneway junction2-0 junction1-0 road4)
+0.00100: (car_start junction0-0 car0 garage0)
+0.00200: (car_start junction0-1 car1 garage1)
+0.00300: (destroy_road junction2-0 junction1-0 road4)
+0.00400: (build_straight_oneway junction0-0 junction1-0 road0)
+0.00500: (build_straight_oneway junction1-0 junction2-0 road4)
+0.00600: (move_car_in_road junction0-0 junction1-0 car0 road0)
+0.00700: (move_car_out_road junction0-0 junction1-0 car0 road0)
+0.00800: (move_car_in_road junction1-0 junction2-0 car0 road4)
+0.00900: (move_car_out_road junction1-0 junction2-0 car0 road4)
+0.01000: (car_arrived junction2-0 car0)
+0.01100: (build_diagonal_oneway junction0-1 junction1-0 road3)
+0.01200: (move_car_in_road junction0-1 junction1-0 car1 road3)
+0.01300: (move_car_out_road junction0-1 junction1-0 car1 road3)
+0.01400: (move_car_in_road junction1-0 junction2-0 car1 road4)
+0.01500: (move_car_out_road junction1-0 junction2-0 car1 road4)
+0.01600: (car_arrived junction2-0 car1)
+
+; Makespan: 0.016000000000000007
+; Metric: 0.016000000000000007

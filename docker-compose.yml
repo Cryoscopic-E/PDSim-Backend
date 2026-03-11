@@ -1,0 +1,11 @@
+services:
+  pdsim-server:
+    build: .
+    image: cryoscopice/pdsim-backend:latest
+    volumes:
+      - ./data:/data
+    ports:
+      - "5556:5556"
+    network_mode: host
+    stdin_open: true 
+    tty: true        
