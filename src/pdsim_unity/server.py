@@ -6,8 +6,8 @@ from unified_planning.model import Problem
 from unified_planning.plans import Plan
 from unified_planning.engines import PlanGenerationResult
 
-from request_handlers import RequestHandler
-from pdsim_problem import PdSimProblem
+from pdsim_unity.request_handlers import RequestHandler
+from pdsim_unity.pdsim_problem import PdSimProblem
 
 class PdSimUnityServer:
     def __init__(self, problem_model: PdSimProblem, plan_result: Union[PlanGenerationResult, Plan], host: str, port: str, 

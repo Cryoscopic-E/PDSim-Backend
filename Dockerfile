@@ -17,5 +17,5 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 5556
 
-ENTRYPOINT ["python", "src/main.py", "--host", "0.0.0.0"]
+ENTRYPOINT ["python", "-m", "pdsim_unity.main", "--host", "0.0.0.0"]
 

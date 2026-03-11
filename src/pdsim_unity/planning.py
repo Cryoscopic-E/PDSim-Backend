@@ -8,9 +8,9 @@ from unified_planning.engines import PlanGenerationResult, CompilationKind
 from unified_planning.shortcuts import OneshotPlanner, get_all_applicable_engines, Compiler
 from typing import Optional, List, Callable, Union
 
-from exceptions import NoPlanFoundError, PlannerNotApplicableError, ParsingError
-from server import PdSimUnityServer
-from pdsim_problem import PdSimProblem
+from pdsim_unity.exceptions import NoPlanFoundError, PlannerNotApplicableError, ParsingError
+from pdsim_unity.server import PdSimUnityServer
+from pdsim_unity.pdsim_problem import PdSimProblem
 
 def compile_problem(problem: Problem) -> Problem:
     """
@@ -157,7 +157,6 @@ def pdsim_pddl_userplan(domain_path: str, problem_path: str, plan_path: str, hos
     launch_server(problem_pddl, plan, host, port)
 
 
-# TODO: check usage
 def pdsim_upf(problem_upf: Problem, planner_name: str, host: str = '127.0.0.1', port: str = '5556', planner_selection_callback: Optional[Callable[[List[str]], str]] = None):
     """
     Solves a UPF problem object directly and launches the server.
